@@ -119,9 +119,10 @@
         camera.lookAt(scene.position);
 
         controls = new THREE.TrackballControls( camera );
-        controls.rotateSpeed = 5
-        controls.panSpeed = 5
-        controls.noZoom = true
+        controls.rotateSpeed = 5;
+        controls.noZoom = true;
+        controls.noPan = true;
+        controls.dynamicDampingFactor = 0.02
     }
 
     function initRenderer() {
@@ -138,10 +139,15 @@
 
         // FEDE7C
 
+        headTexture = new THREE.TextureLoader().load('head.png');
+        headTexture.flipY = false;
+        headTexture.wrapS = THREE.RepeatWrapping;
+        headTexture.repeat.x = - 1;
+
         let materials = [];
         materials.push(new THREE.MeshBasicMaterial( {color: 0xEDCD71} ));
         materials.push(new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('tail.png') }));
-        materials.push(new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('head.png') }));
+        materials.push(new THREE.MeshBasicMaterial({ map: headTexture }));
 
         var material = new THREE.MeshFaceMaterial(materials);
 

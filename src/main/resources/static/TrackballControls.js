@@ -145,6 +145,10 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 	}() );
 
+	this.setMoveCurr = (mc) => {
+		_moveCurr = mc
+	}
+
 	this.rotateCamera = ( function () {
 
 		var axis = new THREE.Vector3(),
@@ -156,6 +160,10 @@ THREE.TrackballControls = function ( object, domElement ) {
 			angle;
 
 		return function rotateCamera() {
+
+            if (_moveCurr.x != _movePrev.x) {
+				console.log(_movePrev, _moveCurr);
+            }
 
 			moveDirection.set( _moveCurr.x - _movePrev.x, _moveCurr.y - _movePrev.y, 0 );
 			angle = moveDirection.length();
