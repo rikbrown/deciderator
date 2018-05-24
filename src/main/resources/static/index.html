@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Signin Template for Bootstrap</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+
+<body class="text-center">
+
+<div id="rows-container" class="container-fluid">
+    <div class="row page" id="row-sign-in">
+        <div class="col">
+            <form class="form-signin" id="form-signin">
+                <fieldset>
+                    <img class="mb-4" src="https://getbootstrap.com/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
+                    <h1 class="h3 mb-3 font-weight-normal">Identify yourself</h1>
+
+                    <label for="username" class="sr-only">Username</label>
+                    <input type="text" id="username" class="form-control" placeholder="Your name" required autofocus>
+
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+
+    <div class="row page" id="row-join">
+        <div class="col">
+            <form class="form-signin" id="form-join">
+                <fieldset>
+                    <img class="mb-4" src="https://getbootstrap.com/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
+                    <h1 class="h3 mb-3 font-weight-normal">Join Uncertainty</h1>
+
+                    <label for="uncertaintyId" class="sr-only">Uncertainty Code</label>
+                    <input type="text" id="uncertaintyId" class="form-control" placeholder="Uncertainty Code" required autofocus>
+
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Join</button>
+
+                    <p>
+                        or, <a id="btn-new-uncertainty" href="#">create new Uncertainty</a>.
+                    </p>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+
+    <div class="row page" id="row-main">
+        <div class="col">
+            <div class="row">
+                <div class="col">
+                    <h2 class="mb-3 font-weight-normal">
+                        Deciderator<br>
+                        <span class="badge badge-secondary">Do we create a new Stellaris race?</span>
+                    </h2>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <h5>Heads</h5>
+                </div>
+                <div class="col">
+                    <h5>Tails</h5>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <div id="threejs-container"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <p class="mt-5 mb-3 text-muted">&copy; 2018 WWHD | Session ID: <span class="session-id"></span></p>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="three.js"></script>
+<script src="TrackballControls.js"></script>
+<script src="main.js"></script>
+
+<script>
+    var scene, camera, renderer;
+
+    var WIDTH  = 300;
+    var HEIGHT = 300;
+
+    var SPEED = 0.01;
+
+    function init() {
+        scene = new THREE.Scene();
+
+        initCube();
+        initCamera();
+        initRenderer();
+
+        $('#threejs-container').append(renderer.domElement);
+    }
+
+    function initCamera() {
+        camera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT, 1, 10);
+        camera.position.set(0, 3.5, 5);
+        camera.lookAt(scene.position);
+
+        controls = new THREE.TrackballControls( camera );
+        controls.rotateSpeed = 5
+        controls.panSpeed = 5
+        controls.noZoom = true
+    }
+
+    function initRenderer() {
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(WIDTH, HEIGHT);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFShadowMap;
+    }
+
+    function initCube() {
+        const diameter = 2.5;
+        const radialSegments = 50;
+        let geometry = new THREE.CylinderGeometry(diameter, diameter, 0.3, radialSegments);
+
+        // FEDE7C
+
+        let materials = [];
+        materials.push(new THREE.MeshBasicMaterial( {color: 0xEDCD71} ));
+        materials.push(new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('tail.png') }));
+        materials.push(new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('head.png') }));
+
+        var material = new THREE.MeshFaceMaterial(materials);
+
+
+        object = new THREE.Mesh(geometry, material);
+        object.castShadow = true;
+        scene.add(object);
+    }
+
+    function rotateCube() {
+        object.rotation.x -= SPEED * 2;
+        object.rotation.y -= SPEED;
+        object.rotation.z -= SPEED * 3;
+    }
+
+    function render() {
+        requestAnimationFrame(render);
+        //rotateCube();
+        renderer.render(scene, camera);
+        controls.update();
+
+    }
+
+    init();
+    render();
+
+</script>
+
+
+
+
+    </body>
+</html>
