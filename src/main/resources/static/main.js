@@ -2,16 +2,19 @@
 
 class DecideratorApp {
     constructor() {
-        this.setHandler(SignInSocketHandler);
-
         let webSocket = this.webSocket = new SockJS('/handler');
-        webSocket.onopen = () => console.log('Session open');
         webSocket.onmessage = (msg) => this.handler.receiveMessage(msg);
-        webSocket.onclose = () => console.log('close');
+        webSocket.onclose = () => {
+            errorMessageHandler({error: 'The connection was closed by the server because it sucks'})
+        };
+        webSocket.onopen = () => {
+            console.log('Session open');
+            this.setHandler(new SignInSocketHandler(this));
+        }
     }
 
-    setHandler(handlerClass) {
-        this.handler = new handlerClass(this);
+    setHandler(handler) {
+        this.handler = handler;
         this.updateUi();
     }
 
@@ -35,6 +38,7 @@ class SocketHandler {
 
     receiveMessage(msg) {
         const data = JSON.parse(msg.data);
+
         const messageClass = data['@class'].replace('codes.rik.deciderator.types.', '')
         const handler = this.getHandlers()[messageClass];
 
@@ -68,6 +72,15 @@ class SignInSocketHandler extends SocketHandler {
             $('#form-signin>fieldset').prop('disabled', true);
             this.setUsername($('#username').val());
         });
+
+        $('#username').focus()
+
+        const savedUsername = window.localStorage.getItem('username');
+        if (savedUsername) {
+            $('#username').val(savedUsername);
+            console.log(this)
+            $('#username').submit();
+        }
     }
 
     // handlers
@@ -80,13 +93,14 @@ class SignInSocketHandler extends SocketHandler {
 
     usernameSetHandler() {
         console.log("Username was set");
-        this.app.setHandler(JoinUncertaintySocketHandler);
+        this.app.setHandler(new JoinUncertaintySocketHandler(this.app));
     }
 
     // actions
 
     setUsername(username) {
         console.log("Setting username", username);
+        window.localStorage.setItem('username', username)
         this.sendMessage('SetUsernameRequest', {
             username: username
         });
@@ -114,7 +128,15 @@ class JoinUncertaintySocketHandler extends SocketHandler {
             e.preventDefault();
             $('#form-join>fieldset').prop('disabled', true);
             this.createUncertainty()
-        })
+        });
+
+        const locationId = location.hash.replace('#', '')
+        if (locationId) {
+            $('#uncertaintyId').val(locationId);
+            $('#form-join ').submit();
+        }
+
+        $('#uncertaintyId').focus()
     }
 
     // actions
@@ -130,15 +152,170 @@ class JoinUncertaintySocketHandler extends SocketHandler {
     // handlers
 
     joinOrCreateHandler(data) {
-        console.log("Uncertainty joined/created", data.uncertaintyId)
+        console.log("Uncertainty joined/created", data.uncertaintyId);
+        this.app.setHandler(new ViewUncertaintyHandler(this.app, data.uncertaintyId, data.info));
+    }
+}
+
+class ViewUncertaintyHandler extends SocketHandler {
+    constructor(app, uncertaintyId, uncertaintyInfo) {
+        super(app);
+        this.uncertaintyId = uncertaintyId;
+        this.uncertaintyInfo = uncertaintyInfo;
+        this.flipping = false;
+    }
+
+    getHandlers() {
+        return {
+            'DecidingMessage': this.decidingHandler,
+            'DecisionMessage': this.decisionHandler,
+            'UncertaintyUpdatedMessage': this.uncertaintyUpdatedHandler,
+        }
+    }
+
+    initUi() {
+        super.initUi();
+
+        document.location.replace('#' + this.uncertaintyId)
+
+        let coin = this.coin = new Coin3D($('#threejs-container'), 300, 300);
+        coin.render();
+        coin.enableControls()
+
+        $('#row-view').show();
+        $('#btn-flip').unbind('click').click((e) => {
+            e.preventDefault();
+
+            this.startFlip()
+        });
+
+        $('.uncertainty-id').text(this.uncertaintyId);
+        $('.uncertainty-name').text(this.uncertaintyInfo.name);
+
+        $('#btn-edit-name').unbind('click').click((e) => {
+            e.preventDefault();
+
+            const $span = $('span.uncertainty-name')
+                .attr('contenteditable', true);
+
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents($span[0]);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+
+            $('#btn-edit-name').hide();
+            $('#btn-save-name').css('display', 'inline');
+
+            coin.disableControls()
+        });
+
+        $('#btn-save-name').unbind('click').click((e) => {
+            const newName = $('span.uncertainty-name').text();
+            this.setName(newName);
+
+            coin.enableControls()
+        });
+
+        $('span.uncertainty-name').unbind('keypress').keypress((e) => {
+            if (e.which === 13) {
+                e.preventDefault()
+                $('#btn-save-name').click()
+            }
+        });
+    }
+
+    updateName(name) {
+        this.uncertaintyInfo.name = name;
+        $('span.uncertainty-name')
+            .text(name)
+            .attr('contenteditable', false);
+        $('#btn-save-name').hide();
+        $('#btn-edit-name').css('display', 'inline');
+    }
+
+    // Commands
+
+    startFlip() {
+        $('#btn-flip')
+            .text('Flipping...')
+            .prop('disabled', true);
+
+        this.coin.prepareForFlip();
+        this.sendMessage('MakeDecisionRequest', { uncertaintyId: this.uncertaintyId });
+    }
+
+    setName(name) {
+        this.updateName(name);
+        this.sendMessage('SetUncertaintyNameRequest', {
+            uncertaintyId: this.uncertaintyId,
+            name: name });
+    }
+
+    // Handlers
+
+    uncertaintyUpdatedHandler(data) {
+        if (data.uncertaintyId !== this.uncertaintyId) return;
+
+        this.updateName(data.info.name)
+    }
+
+    decidingHandler(data) {
+        if (data.uncertaintyId !== this.uncertaintyId) return;
+
+        if (!this.flipping) {
+            $('#btn-flip')
+                .text('Flipping...')
+                .prop('disabled', true);
+
+            this.coin.prepareForFlip();
+            this.flipping = true
+        }
+
+        let coin = this.coin;
+        coin.animationMethod = () => {
+            coin.object.rotation.x += data.rotation.x;
+            coin.object.rotation.y += data.rotation.y;
+            coin.object.rotation.z += data.rotation.z;
+        }
+    }
+
+    decisionHandler(data) {
+        if (data.uncertaintyId !== this.uncertaintyId) return;
+        console.log(data);
+
+        let coin = this.coin;
+        coin.prepareForFlip();
+
+        if (data.decision === 'TAILS') {
+            coin.object.rotation.z = 1
+        } else {
+            coin.object.rotation.z = 2;
+            coin.object.rotation.y = -1.5;
+        }
+
+        coin.enableControls();
+
+        $('#btn-flip')
+            .text('Flip!')
+            .prop('disabled', false)
+
+        $('.coin-col.' + data.decision.toLowerCase())
+            .append($('<img/>').attr('src', data.decision.toLowerCase() + '-transparent.png'))
+            .append($('<br/>'))
+
+        this.flipping = false
     }
 
 }
 
 let app = new DecideratorApp();
 
-$('.row.page').hide();
-$('#row-main').show();
+// $('.row.page').hide();
+// $('#row-main').show();
+
+app.updateUi();
 
 // receive
 
@@ -149,6 +326,7 @@ function echoHandler(data) {
 
 function errorMessageHandler(data) {
     alert(data.error);
-    location.reload();
+    location.hash = ''
+    location.reload()
 }
 

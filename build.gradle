@@ -40,8 +40,16 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-websocket')
     compile("org.jetbrains.kotlin:kotlin-stdlib-jre8")
     compile("org.jetbrains.kotlin:kotlin-reflect")
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.21"
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.5"
     compile "com.google.guava:guava:23.5-jre"
+    compile 'org.apache.commons:commons-lang3:3.7'
+
 
     testCompile('org.springframework.boot:spring-boot-starter-test')
+}
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
 }

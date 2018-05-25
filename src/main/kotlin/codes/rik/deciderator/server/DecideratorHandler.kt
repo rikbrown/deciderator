@@ -5,10 +5,15 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
+import kotlinx.coroutines.experimental.async
+import objectMapper
 import org.springframework.web.socket.CloseStatus
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.handler.TextWebSocketHandler
+import sendMessage
+import sessionId
+import username
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
@@ -37,6 +42,35 @@ class DecideratorHandler: TextWebSocketHandler() {
             is SetUsernameRequest -> setUsername(session, msg.username)
             is CreateUncertaintyRequest -> createUncertainty(session)
             is JoinUncertaintyRequest -> joinUncertainty(session, msg.uncertaintyId)
+            is SetUncertaintyNameRequest -> setUncertaintyName(session, msg.uncertaintyId, msg.name)
+            is MakeDecisionRequest -> makeDecision(session, msg.uncertaintyId)
+        }
+    }
+
+    private fun setUncertaintyName(session: WebSocketSession, uncertaintyId: UncertaintyId, name: String) {
+        val uncertainty = uncertainties[uncertaintyId]
+        if (uncertainty == null) {
+            session.sendMessage(UncertaintyNotFoundMessage(uncertaintyId))
+            return
+        }
+
+        uncertainty.name = name
+
+        val msg = UncertaintyUpdatedMessage(uncertaintyId, UncertaintyInfo(name = name))
+        sendToUncertaintySessions(uncertaintyId, msg)
+    }
+
+    private fun makeDecision(session: WebSocketSession, uncertaintyId: UncertaintyId) {
+        val uncertainty = uncertainties[uncertaintyId]
+        if (uncertainty == null) {
+            session.sendMessage(UncertaintyNotFoundMessage(uncertaintyId))
+            return
+        }
+
+        System.err.println("Calculating decision for ${uncertainty}")
+
+        async {
+            uncertainty.calculateDecision()
         }
     }
 
@@ -47,24 +81,35 @@ class DecideratorHandler: TextWebSocketHandler() {
 
     private fun createUncertainty(session: WebSocketSession) {
         val uncertaintyId = UncertaintyId.create()
-        val uncertainty = Uncertainty(uncertaintyId)
-        uncertainties[uncertaintyId] = uncertainty
+        val uncertainty = Uncertainty(uncertaintyId, publisher = object : UncertaintySocketPublisher(uncertaintyId) {
+            override fun getSessions(): Set<WebSocketSession> {
+                return with(getUncertaintySessions(uncertaintyId)){
+                    System.err.println(this)
+                    this
+                }
+            }
+        })
 
-        session.sendMessage(UncertaintyCreatedMessage(uncertaintyId))
+        uncertainties[uncertaintyId] = uncertainty
+        sessionUncertainty[session.sessionId] = uncertaintyId // implicitly joins
+        session.sendMessage(UncertaintyCreatedMessage(uncertaintyId, UncertaintyInfo(uncertainty.name)))
     }
 
     private fun joinUncertainty(session: WebSocketSession, uncertaintyId: UncertaintyId) {
         val oldUncertaintyId = sessionUncertainty[session.sessionId]
 
         // Is new uncertainty even valid?
-        if (uncertainties[uncertaintyId] == null) {
+        val uncertainty = uncertainties[uncertaintyId]
+        if (uncertainty == null) {
             session.sendMessage(UncertaintyNotFoundMessage(uncertaintyId))
             return
         }
 
         // Join this uncertainty
         sessionUncertainty[session.sessionId] = uncertaintyId
-        session.sendMessage(UncertaintyJoinedMessage(uncertaintyId))
+        session.sendMessage(UncertaintyJoinedMessage(uncertaintyId, UncertaintyInfo(
+                name = uncertainty.name
+        )))
 
         // Notify users. If we left an old uncertainty, notify that too.
         notifyUsers(uncertaintyId)
@@ -73,12 +118,16 @@ class DecideratorHandler: TextWebSocketHandler() {
 
     private fun notifyUsers(uncertaintyId: UncertaintyId) {
         val sessions = getUncertaintySessions(uncertaintyId)
-
-        sessions.forEach { session ->
-            session.sendMessage(UncertaintyActiveUsersMessage(
+        val msg = UncertaintyActiveUsersMessage(
                 uncertaintyId = uncertaintyId,
-                users = sessions.map { s -> UncertaintyJoinedUser(s.sessionId, s.username) }.toSet()))
-        }
+                users = sessions.map { s -> UncertaintyJoinedUser(s.sessionId, s.username) }.toSet())
+
+        sendToUncertaintySessions(uncertaintyId, msg)
+    }
+
+    private fun sendToUncertaintySessions(uncertaintyId: UncertaintyId, message: UncertaintyMessage) {
+        val sessions = getUncertaintySessions(uncertaintyId)
+        sessions.forEach { session -> session.sendMessage(message) }
     }
 
     private fun getUncertaintySessions(uncertaintyId: UncertaintyId): Set<WebSocketSession> {
@@ -89,13 +138,4 @@ class DecideratorHandler: TextWebSocketHandler() {
     }
 
 }
-
-private val objectMapper = jacksonObjectMapper()
-
-private fun WebSocketSession.sendMessage(message: UncertaintyMessage) = sendMessage(TextMessage(objectMapper.writeValueAsString(message)))
-private val WebSocketSession.sessionId get() = SessionId(this.id)
-private var WebSocketSession.username: String
-    set(username) { attributes["username"] = username }
-    get() = attributes["username"] as? String ?: id
-
 

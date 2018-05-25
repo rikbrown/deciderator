@@ -46,3 +46,24 @@ body {
 div#signin {
     width: 100%
 }
+
+.coin-col {
+    text-align: center;
+}
+.coin-col img {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 10px;
+}
+
+#btn-save-name {
+    display:none
+}
+
+.row.page {
+    display: none
+}
+
+/*input#uncertainty-name-input {*/
+    /*width: 500px;*/
+/*}*/

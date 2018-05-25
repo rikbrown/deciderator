@@ -161,10 +161,6 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 		return function rotateCamera() {
 
-            if (_moveCurr.x != _movePrev.x) {
-				console.log(_movePrev, _moveCurr);
-            }
-
 			moveDirection.set( _moveCurr.x - _movePrev.x, _moveCurr.y - _movePrev.y, 0 );
 			angle = moveDirection.length();
 

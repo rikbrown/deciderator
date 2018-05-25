@@ -7,7 +7,7 @@
     <title>Signin Template for Bootstrap</title>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css" integrity="sha256-BJ/G+e+y7bQdrYkS2RBTyNfBHpA9IuGaPmf9htub5MQ=" crossorigin="anonymous" />
     <link rel="stylesheet" href="styles.css">
 
 </head>
@@ -41,7 +41,7 @@
                     <label for="uncertaintyId" class="sr-only">Uncertainty Code</label>
                     <input type="text" id="uncertaintyId" class="form-control" placeholder="Uncertainty Code" required autofocus>
 
-                    <button class="btn btn-lg btn-primary btn-block" type="submit">Join</button>
+                    <button class="btn btn-lg btn-primary btn-block" id="btn-join" type="submit">Join</button>
 
                     <p>
                         or, <a id="btn-new-uncertainty" href="#">create new Uncertainty</a>.
@@ -51,30 +51,39 @@
         </div>
     </div>
 
-    <div class="row page" id="row-main">
+    <div class="row page" id="row-view">
         <div class="col">
             <div class="row">
                 <div class="col">
                     <h2 class="mb-3 font-weight-normal">
                         Deciderator<br>
-                        <span class="badge badge-secondary">Do we create a new Stellaris race?</span>
+                        <span class="badge badge-info uncertainty-id"></span>
+                        <span class="badge badge-secondary uncertainty-name"></span>
+                        <button type="button" class="btn btn-default btn-sm" id="btn-edit-name"><span class="oi oi-pencil" title="Edit Uncertainty name" aria-hidden="true"></span></button>
+                        <button type="button" class="btn btn-default btn-sm" id="btn-save-name"><span class="oi oi-check" title="Save Uncertainty name" aria-hidden="true"></span></button>
+
                     </h2>
                 </div>
             </div>
 
             <div class="row">
-                <div class="col">
+                <div class="col coin-col heads">
                     <h5>Heads</h5>
                 </div>
                 <div class="col">
+                    <div id="threejs-container"></div>
+                </div>
+                <div class="col coin-col tails">
                     <h5>Tails</h5>
                 </div>
             </div>
 
             <div class="row">
+                <div class="col"></div>
                 <div class="col">
-                    <div id="threejs-container"></div>
+                    <button id="btn-flip" class="btn btn-primary btn-lg btn-block" type="submit">Flip!</button>
                 </div>
+                <div class="col"></div>
             </div>
 
         </div>
@@ -94,90 +103,14 @@
 <script src="three.js"></script>
 <script src="TrackballControls.js"></script>
 <script src="main.js"></script>
+<script src="coin3d.js"></script>
 
+<!--
 <script>
-    var scene, camera, renderer;
-
-    var WIDTH  = 300;
-    var HEIGHT = 300;
-
-    var SPEED = 0.01;
-
-    function init() {
-        scene = new THREE.Scene();
-
-        initCube();
-        initCamera();
-        initRenderer();
-
-        $('#threejs-container').append(renderer.domElement);
-    }
-
-    function initCamera() {
-        camera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT, 1, 10);
-        camera.position.set(0, 3.5, 5);
-        camera.lookAt(scene.position);
-
-        controls = new THREE.TrackballControls( camera );
-        controls.rotateSpeed = 5;
-        controls.noZoom = true;
-        controls.noPan = true;
-        controls.dynamicDampingFactor = 0.02
-    }
-
-    function initRenderer() {
-        renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(WIDTH, HEIGHT);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFShadowMap;
-    }
-
-    function initCube() {
-        const diameter = 2.5;
-        const radialSegments = 50;
-        let geometry = new THREE.CylinderGeometry(diameter, diameter, 0.3, radialSegments);
-
-        // FEDE7C
-
-        headTexture = new THREE.TextureLoader().load('head.png');
-        headTexture.flipY = false;
-        headTexture.wrapS = THREE.RepeatWrapping;
-        headTexture.repeat.x = - 1;
-
-        let materials = [];
-        materials.push(new THREE.MeshBasicMaterial( {color: 0xEDCD71} ));
-        materials.push(new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('tail.png') }));
-        materials.push(new THREE.MeshBasicMaterial({ map: headTexture }));
-
-        var material = new THREE.MeshFaceMaterial(materials);
-
-
-        object = new THREE.Mesh(geometry, material);
-        object.castShadow = true;
-        scene.add(object);
-    }
-
-    function rotateCube() {
-        object.rotation.x -= SPEED * 2;
-        object.rotation.y -= SPEED;
-        object.rotation.z -= SPEED * 3;
-    }
-
-    function render() {
-        requestAnimationFrame(render);
-        //rotateCube();
-        renderer.render(scene, camera);
-        controls.update();
-
-    }
-
-    init();
-    render();
-
+    let coin = new Coin3D($('#threejs-container'), 300, 300);
+    coin.render()
 </script>
-
-
-
+-->
 
     </body>
 </html>
