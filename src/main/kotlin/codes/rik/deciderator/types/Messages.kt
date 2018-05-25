@@ -32,7 +32,8 @@ data class DecidingMessage(
         val rotation: Rotation): UncertaintyMessage
 data class DecisionMessage(
         val uncertaintyId: UncertaintyId,
-        val decision: CoinFlipResult): UncertaintyMessage
+        val decision: CoinFlipResult,
+        val decisions: Set<CoinFlipResult>): UncertaintyMessage
 
 data class HelloMessage(
         val sessionId: SessionId,
@@ -44,5 +45,6 @@ data class UncertaintyActiveUsersMessage(
         val users: Set<UncertaintyJoinedUser>): UncertaintyMessage
 
 data class UncertaintyInfo(
-        val name: String
+        val name: String,
+        val decisions: Set<CoinFlipResult>
 )

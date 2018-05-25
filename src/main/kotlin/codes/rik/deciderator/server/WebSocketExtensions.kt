@@ -8,9 +8,10 @@ import org.springframework.web.socket.WebSocketSession
 val objectMapper = jacksonObjectMapper()
 
 fun WebSocketSession.sendMessage(message: UncertaintyMessage) {
-    async {
+    //async {
+        System.err.println(message)
         sendMessage(TextMessage(objectMapper.writeValueAsString(message)))
-    }
+    //}
 }
 val WebSocketSession.sessionId get() = SessionId(this.id)
 var WebSocketSession.username: String

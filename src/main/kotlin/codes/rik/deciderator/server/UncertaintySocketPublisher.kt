@@ -6,7 +6,7 @@ import sendMessage
 
 interface UncertaintyPublisher {
     fun onRotationUpdated(rotation: Rotation)
-    fun onDecisionMade(decision: CoinFlipResult)
+    fun onDecisionMade(decision: CoinFlipResult, decisions: Set<CoinFlipResult>)
 }
 
 abstract class UncertaintySocketPublisher(private val uncertaintyId: UncertaintyId): UncertaintyPublisher {
@@ -17,8 +17,8 @@ abstract class UncertaintySocketPublisher(private val uncertaintyId: Uncertainty
         getSessions().forEach { session -> session.sendMessage(message) }
     }
 
-    override fun onDecisionMade(decision: CoinFlipResult) {
-        val message = DecisionMessage(uncertaintyId, decision)
+    override fun onDecisionMade(decision: CoinFlipResult, decisions: Set<CoinFlipResult>) {
+        val message = DecisionMessage(uncertaintyId, decision, decisions)
         getSessions().forEach { session -> session.sendMessage(message) }
     }
 

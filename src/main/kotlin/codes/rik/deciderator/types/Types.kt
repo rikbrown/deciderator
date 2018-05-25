@@ -14,7 +14,7 @@ data class UncertaintyId(override val id: String): IdValueType {
     companion object {
         @JsonCreator @JvmStatic fun uncertaintyId(id: String) = UncertaintyId(id)
 
-        fun create() = UncertaintyId(RandomStringUtils.randomAlphanumeric(5).toUpperCase())
+        fun create() = UncertaintyId(RandomStringUtils.randomAlphanumeric(3).toUpperCase())
     }
 }
 

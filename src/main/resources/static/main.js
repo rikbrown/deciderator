@@ -28,6 +28,13 @@ class SocketHandler {
         this.app = app
     }
 
+    allHandlers() {
+        return {
+            ...(this.getHandlers()),
+            "UncertaintyActiveUsersMessage": this.handleActiveUsers
+        }
+    }
+
     getHandlers() {
         return {}
     }
@@ -40,7 +47,7 @@ class SocketHandler {
         const data = JSON.parse(msg.data);
 
         const messageClass = data['@class'].replace('codes.rik.deciderator.types.', '')
-        const handler = this.getHandlers()[messageClass];
+        const handler = this.allHandlers()[messageClass];
 
         if (handler) {
             handler.bind(this)(data);
@@ -52,6 +59,14 @@ class SocketHandler {
     sendMessage(type, msg) {
         msg['@class'] = 'codes.rik.deciderator.types.' + type;
         this.app.webSocket.send(JSON.stringify(msg))
+    }
+
+    handleActiveUsers(data) {
+        const $users = $('.online-users')
+            .empty();
+        data.users.forEach(user => {
+            $users.append($('<span>').addClass('badge badge-success').text(user.name))
+        });
     }
 
 }
@@ -78,7 +93,6 @@ class SignInSocketHandler extends SocketHandler {
         const savedUsername = window.localStorage.getItem('username');
         if (savedUsername) {
             $('#username').val(savedUsername);
-            console.log(this)
             $('#username').submit();
         }
     }
@@ -176,11 +190,13 @@ class ViewUncertaintyHandler extends SocketHandler {
     initUi() {
         super.initUi();
 
-        document.location.replace('#' + this.uncertaintyId)
+        document.location.replace('#' + this.uncertaintyId);
 
         let coin = this.coin = new Coin3D($('#threejs-container'), 300, 300);
         coin.render();
-        coin.enableControls()
+        coin.enableControls();
+
+        this.updateDecisions(this.uncertaintyInfo.decisions);
 
         $('#row-view').show();
         $('#btn-flip').unbind('click').click((e) => {
@@ -195,15 +211,16 @@ class ViewUncertaintyHandler extends SocketHandler {
         $('#btn-edit-name').unbind('click').click((e) => {
             e.preventDefault();
 
+            const text = $('span.uncertainty-name').text();
             const $span = $('span.uncertainty-name')
-                .attr('contenteditable', true);
+                .attr('contenteditable', true)
+                .text(text ? text : ' ');
 
             const selection = window.getSelection();
             const range = document.createRange();
             range.selectNodeContents($span[0]);
             selection.removeAllRanges();
             selection.addRange(range);
-
 
             $('#btn-edit-name').hide();
             $('#btn-save-name').css('display', 'inline');
@@ -235,6 +252,15 @@ class ViewUncertaintyHandler extends SocketHandler {
         $('#btn-edit-name').css('display', 'inline');
     }
 
+    updateDecisions(decisions) {
+        $('.coin-col .coins').empty();
+        decisions.forEach(decision => {
+            $('.coin-col.' + decision.toLowerCase())
+                .append($('<img/>').attr('src', decision.toLowerCase() + '-transparent.png'))
+                .append($('<br/>'))
+        })
+    }
+
     // Commands
 
     startFlip() {
@@ -258,7 +284,8 @@ class ViewUncertaintyHandler extends SocketHandler {
     uncertaintyUpdatedHandler(data) {
         if (data.uncertaintyId !== this.uncertaintyId) return;
 
-        this.updateName(data.info.name)
+        this.updateName(data.info.name);
+        this.updateDecisions(data.info.decisions);
     }
 
     decidingHandler(data) {
@@ -315,7 +342,6 @@ let app = new DecideratorApp();
 // $('.row.page').hide();
 // $('#row-main').show();
 
-app.updateUi();
 
 // receive
 

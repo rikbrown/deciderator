@@ -1,10 +1,7 @@
 package codes.rik.deciderator.server
 
+import codes.rik.deciderator.types.*
 import codes.rik.deciderator.types.CoinFlipResult.*
-import codes.rik.deciderator.types.DecidingMessage
-import codes.rik.deciderator.types.Rotation
-import codes.rik.deciderator.types.SessionId
-import codes.rik.deciderator.types.UncertaintyId
 import org.springframework.web.socket.WebSocketSession
 import java.security.SecureRandom
 import kotlinx.coroutines.experimental.*
@@ -14,6 +11,7 @@ import kotlin.reflect.KProperty
 class Uncertainty(
         val id: UncertaintyId,
         var name: String = "Unnamed Uncertainty",
+        var decisions: MutableSet<CoinFlipResult> = mutableSetOf(),
         private val publisher: UncertaintyPublisher) {
 
     private var flipping = AtomicBoolean(false)
@@ -43,17 +41,20 @@ class Uncertainty(
         publisher.onRotationUpdated(Rotation(z = -0.5))
 
         delay(4000)
-        publisher.onDecisionMade(decision)
+        decisions.add(decision)
+        publisher.onDecisionMade(decision, decisions)
+
 
         flipping.set(false)
+
     }
 
     override fun toString(): String {
         return "Uncertainty(id=$id, name='$name')"
     }
 
+    val info get() = UncertaintyInfo(name, decisions)
 
 }
-
 
 private val RANDOM = SecureRandom()
