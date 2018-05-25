@@ -11,7 +11,7 @@ import kotlin.reflect.KProperty
 class Uncertainty(
         val id: UncertaintyId,
         var name: String = "Unnamed Uncertainty",
-        var decisions: MutableSet<CoinFlipResult> = mutableSetOf(),
+        var decisions: MutableList<CoinFlipResult> = mutableListOf(),
         private val publisher: UncertaintyPublisher) {
 
     private var flipping = AtomicBoolean(false)
