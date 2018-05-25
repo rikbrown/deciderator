@@ -64,6 +64,10 @@ div#signin {
     display: none
 }
 
+.online-users .badge {
+    margin-right: 5px
+}
+
 footer {
     position: absolute;
     bottom: 0;

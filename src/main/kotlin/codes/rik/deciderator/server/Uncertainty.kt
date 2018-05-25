@@ -26,21 +26,24 @@ class Uncertainty(
         publisher.onRotationUpdated(Rotation(z = -0.01))
 
         delay(500)
-        publisher.onRotationUpdated(Rotation(z = -0.05))
+        publisher.onRotationUpdated(Rotation(z = -0.02))
 
-        delay(500)
+        delay(1000)
+        publisher.onRotationUpdated(Rotation(z = -0.04))
+
+        delay(2000)
         publisher.onRotationUpdated(Rotation(z = -0.1))
 
-        delay(500)
+        delay(4000)
         publisher.onRotationUpdated(Rotation(z = -0.2))
 
-        delay(500)
+        delay(8000)
         publisher.onRotationUpdated(Rotation(z = -0.3))
 
-        delay(500)
-        publisher.onRotationUpdated(Rotation(z = -0.5))
+        delay(12000)
+        publisher.onRotationUpdated(Rotation(z = -0.4))
 
-        delay(4000)
+        delay(10000)
         decisions.add(decision)
         publisher.onDecisionMade(decision, decisions)
 
