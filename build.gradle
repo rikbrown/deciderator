@@ -11,7 +11,6 @@ buildscript {
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
-        classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
     }
 }
 
@@ -38,7 +37,7 @@ repositories {
 
 dependencies {
     compile('org.springframework.boot:spring-boot-starter-websocket')
-    compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     compile("org.jetbrains.kotlin:kotlin-reflect")
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.21"
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.5"
