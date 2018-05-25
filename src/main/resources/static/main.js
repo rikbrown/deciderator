@@ -255,7 +255,7 @@ class ViewUncertaintyHandler extends SocketHandler {
     updateDecisions(decisions) {
         $('.coin-col .coins').empty();
         decisions.forEach(decision => {
-            $('.coin-col.' + decision.toLowerCase())
+            $('.coin-col.' + decision.toLowerCase() + ' .coins')
                 .append($('<img/>').attr('src', decision.toLowerCase() + '-transparent.png'))
                 .append($('<br/>'))
         })

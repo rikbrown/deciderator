@@ -37,13 +37,13 @@ class Uncertainty(
         delay(3000)
         publisher.onRotationUpdated(Rotation(z = -0.1))
 
-        delay(4000)
+        delay(3000)
         publisher.onRotationUpdated(Rotation(z = -0.2))
 
-        delay(5000)
+        delay(4000)
         publisher.onRotationUpdated(Rotation(z = -0.3))
 
-        delay(6000)
+        delay(5000)
         publisher.onRotationUpdated(Rotation(z = -0.4))
 
         delay(12000)
