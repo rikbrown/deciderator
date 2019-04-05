@@ -1,5 +1,11 @@
 'use strict';
 
+const COINS = [
+    'FIRST_WORLD_WAR',
+    'GERMANY',
+    'EU_GERMANY',
+];
+
 class DecideratorApp {
     constructor() {
         let webSocket = this.webSocket = new SockJS('/handler');
@@ -172,6 +178,7 @@ class JoinUncertaintySocketHandler extends SocketHandler {
 }
 
 class ViewUncertaintyHandler extends SocketHandler {
+
     constructor(app, uncertaintyId, uncertaintyInfo) {
         super(app);
         this.uncertaintyId = uncertaintyId;
@@ -199,7 +206,10 @@ class ViewUncertaintyHandler extends SocketHandler {
 
         $('#threejs-container').mousedown((e) => {
             if (e.which == 3 && !this.flipping && !this.hasDecision) {
-                this.setCoinStyle(this.uncertaintyInfo.coinStyle == "GERMANY" ? "FIRST_WORLD_WAR" : "GERMANY", true);
+                let currentCoinStyleIndex = COINS.indexOf(this.uncertaintyInfo.coinStyle);
+                let newCoinStyle = currentCoinStyleIndex == COINS.length - 1 ? COINS[0] : COINS[currentCoinStyleIndex + 1];
+
+                this.setCoinStyle(newCoinStyle, true);
             }
         });
 

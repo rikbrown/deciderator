@@ -34,6 +34,7 @@ enum class CoinFlipResult {
 }
 
 enum class CoinStyle {
+    EU_GERMANY,
     FIRST_WORLD_WAR,
     GERMANY,
 }

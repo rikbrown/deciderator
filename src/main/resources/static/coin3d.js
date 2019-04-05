@@ -95,8 +95,14 @@ class Coin3D {
         headTexture.flipY = false;
         headTexture.wrapS = THREE.RepeatWrapping;
         headTexture.repeat.x = - 1;
+
+        const edgeTexture = new THREE.TextureLoader().load('./coins/' + coin_style + '/edge.png');
+        // edgeTexture.repeat.x = -1;
+        edgeTexture.repeat.x = 40;
+        edgeTexture.wrapS = edgeTexture.wrapT = THREE.RepeatWrapping;
+
         const materials = [
-            new THREE.MeshBasicMaterial({ map: headTexture }), // use coin texture for edges for simplicity
+            new THREE.MeshBasicMaterial({ map: edgeTexture }),
             new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./coins/' + coin_style + '/tails.png') }),
             new THREE.MeshBasicMaterial({ map: headTexture })
         ];
