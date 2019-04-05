@@ -198,7 +198,7 @@ class ViewUncertaintyHandler extends SocketHandler {
         coin.enableControls();
 
         $('#threejs-container').mousedown((e) => {
-            if (e.which == 3 && !this.flipping) {
+            if (e.which == 3 && !this.flipping && !this.hasDecision) {
                 this.setCoinStyle(this.uncertaintyInfo.coinStyle == "GERMANY" ? "FIRST_WORLD_WAR" : "GERMANY", true);
             }
         });
@@ -262,8 +262,9 @@ class ViewUncertaintyHandler extends SocketHandler {
     updateDecisions(decisions) {
         $('.coin-col .coins').empty();
         decisions.forEach(decision => {
+            this.hasDecision = true;
             $('.coin-col.' + decision.toLowerCase() + ' .coins')
-                .append($('<img/>').attr('src', 'coins/' + this.uncertaintyInfo.coinStyle + '/' + decision.toLowerCase() + '.png'))
+                .append($('<img/>').attr('src', 'coins/' + this.uncertaintyInfo.coinStyle.toLowerCase() + '/' + decision.toLowerCase() + '.png'))
                 .append($('<br/>'))
         })
     }
@@ -354,7 +355,7 @@ class ViewUncertaintyHandler extends SocketHandler {
             .prop('disabled', false)
 
         $('.coin-col.' + data.decision.toLowerCase())
-            .append($('<img/>').attr('src', 'coins/' + this.uncertaintyInfo.coinStyle + '/' + data.decision.toLowerCase() + '.png'))
+            .append($('<img/>').attr('src', 'coins/' + this.uncertaintyInfo.coinStyle.toLowerCase() + '/' + data.decision.toLowerCase() + '.png'))
             .append($('<br/>'))
 
         this.flipping = false
