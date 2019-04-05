@@ -369,7 +369,8 @@ class ViewUncertaintyHandler extends SocketHandler {
             .append($('<img/>').attr('src', 'coins/' + this.uncertaintyInfo.coinStyle.toLowerCase() + '/' + data.decision.toLowerCase() + '.png'))
             .append($('<br/>'))
 
-        this.flipping = false
+        this.hasDecision = true;
+        this.flipping = false;
     }
 
 }
