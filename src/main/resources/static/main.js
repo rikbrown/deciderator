@@ -192,9 +192,16 @@ class ViewUncertaintyHandler extends SocketHandler {
 
         document.location.replace('#' + this.uncertaintyId);
 
-        let coin = this.coin = new Coin3D($('#threejs-container'), 300, 300);
+        let coin = this.coin = new Coin3D($('#threejs-container'), 300, 300, this.uncertaintyInfo.coinStyle.toLowerCase());
+        coin.setup();
         coin.render();
         coin.enableControls();
+
+        $('#threejs-container').mousedown((e) => {
+            if (e.which == 3 && !this.flipping) {
+                this.setCoinStyle(this.uncertaintyInfo.coinStyle == "GERMANY" ? "FIRST_WORLD_WAR" : "GERMANY", true);
+            }
+        });
 
         this.updateDecisions(this.uncertaintyInfo.decisions);
 
@@ -256,7 +263,7 @@ class ViewUncertaintyHandler extends SocketHandler {
         $('.coin-col .coins').empty();
         decisions.forEach(decision => {
             $('.coin-col.' + decision.toLowerCase() + ' .coins')
-                .append($('<img/>').attr('src', decision.toLowerCase() + '-transparent.png'))
+                .append($('<img/>').attr('src', 'coins/' + this.uncertaintyInfo.coinStyle + '/' + decision.toLowerCase() + '.png'))
                 .append($('<br/>'))
         })
     }
@@ -279,6 +286,20 @@ class ViewUncertaintyHandler extends SocketHandler {
             name: name });
     }
 
+    setCoinStyle(newCoinStyle, save) {
+        this.coin.setCoinStyle(newCoinStyle.toLowerCase());
+        this.coin.setup();
+        this.coin.enableControls();
+        this.uncertaintyInfo.coinStyle = newCoinStyle;
+
+        if (save) {
+            this.sendMessage('SetUncertaintyCoinStyleRequest', {
+                uncertaintyId: this.uncertaintyId,
+                coinStyle: newCoinStyle
+            });
+        }
+    }
+
     // Handlers
 
     uncertaintyUpdatedHandler(data) {
@@ -286,6 +307,10 @@ class ViewUncertaintyHandler extends SocketHandler {
 
         this.updateName(data.info.name);
         this.updateDecisions(data.info.decisions);
+
+        if (data.info.coinStyle != this.uncertaintyInfo.coinStyle) {
+            this.setCoinStyle(data.info.coinStyle, false)
+        }
     }
 
     decidingHandler(data) {
@@ -329,7 +354,7 @@ class ViewUncertaintyHandler extends SocketHandler {
             .prop('disabled', false)
 
         $('.coin-col.' + data.decision.toLowerCase())
-            .append($('<img/>').attr('src', data.decision.toLowerCase() + '-transparent.png'))
+            .append($('<img/>').attr('src', 'coins/' + this.uncertaintyInfo.coinStyle + '/' + data.decision.toLowerCase() + '.png'))
             .append($('<br/>'))
 
         this.flipping = false

@@ -24,6 +24,7 @@ data class UncertaintyJoinedMessage(
 data class UncertaintyNotFoundMessage(val uncertaintyId: UncertaintyId): UncertaintyErrorMessage("Uncertainty not found: ${uncertaintyId.id}")
 
 data class SetUncertaintyNameRequest(val uncertaintyId: UncertaintyId, val name: String): UncertaintyRequest
+data class SetUncertaintyCoinStyleRequest(val uncertaintyId: UncertaintyId, val coinStyle: String): UncertaintyRequest
 data class UncertaintyUpdatedMessage(val uncertaintyId: UncertaintyId, val info: UncertaintyInfo): UncertaintyMessage
 
 data class MakeDecisionRequest(val uncertaintyId: UncertaintyId): UncertaintyRequest
@@ -46,5 +47,6 @@ data class UncertaintyActiveUsersMessage(
 
 data class UncertaintyInfo(
         val name: String,
+        val coinStyle: CoinStyle,
         val decisions: List<CoinFlipResult>
 )

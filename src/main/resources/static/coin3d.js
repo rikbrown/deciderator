@@ -1,18 +1,28 @@
 'use strict';
 
 class Coin3D {
-    constructor(container, width, height) {
+    constructor(container, width, height, coin_style) {
         this.scene = new THREE.Scene();
         this.width = width;
         this.height = height;
+        this.coin_style = coin_style;
 
-        this.camera = Coin3D.initCamera(this.scene, width, height);
+        this.camera = Coin3D.initCamera(this.scene, this.width, this.height);
         this.renderer = Coin3D.initRenderer(width, height);
-        this.object = Coin3D.initObject(this.scene);
 
         this.animationMethod = null;
 
         $(container).append(this.renderer.domElement);
+    }
+
+    setup() {
+        if (this.object != null) this.scene.remove(this.object);
+        this.object = Coin3D.initObject(this.scene, this.coin_style);
+        this.scene.add(this.object);
+    }
+
+    setCoinStyle(coin_style) {
+        this.coin_style = coin_style;
     }
 
     render() {
@@ -74,27 +84,26 @@ class Coin3D {
         return renderer
     }
 
-    static initObject(scene) {
+    static initObject(scene, coin_style) {
         // geometry
         const diameter = 2.5;
         const radialSegments = 50;
         const geometry = new THREE.CylinderGeometry(diameter, diameter, 0.3, radialSegments);
 
         // materials
-        const headTexture = new THREE.TextureLoader().load('./heads-transparent.png');
+        const headTexture = new THREE.TextureLoader().load('./coins/' + coin_style + '/heads.png');
         headTexture.flipY = false;
         headTexture.wrapS = THREE.RepeatWrapping;
         headTexture.repeat.x = - 1;
         const materials = [
-            new THREE.MeshBasicMaterial( {color: 0xEDCD71} ),
-            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./tails-transparent.png') }),
+            new THREE.MeshBasicMaterial({ map: headTexture }), // use coin texture for edges for simplicity
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./coins/' + coin_style + '/tails.png') }),
             new THREE.MeshBasicMaterial({ map: headTexture })
         ];
 
         // object
         const object = new THREE.Mesh(geometry, materials);
         object.rotation.y = 1.5;
-        scene.add(object);
 
         //object.add(new THREE.AxisHelper(20))
 

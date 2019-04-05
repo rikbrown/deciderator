@@ -48,6 +48,7 @@ class DecideratorHandler: TextWebSocketHandler() {
             is CreateUncertaintyRequest -> createUncertainty(session)
             is JoinUncertaintyRequest -> joinUncertainty(session, msg.uncertaintyId)
             is SetUncertaintyNameRequest -> setUncertaintyName(session, msg.uncertaintyId, msg.name)
+            is SetUncertaintyCoinStyleRequest -> setUncertaintyCoinStyle(session, msg.uncertaintyId, CoinStyle.valueOf(msg.coinStyle.toUpperCase()))
             is MakeDecisionRequest -> makeDecision(session, msg.uncertaintyId)
         }
     }
@@ -61,6 +62,17 @@ class DecideratorHandler: TextWebSocketHandler() {
 
         uncertainty.name = name
 
+        sendToUncertaintySessions(uncertaintyId, UncertaintyUpdatedMessage(uncertaintyId, uncertainty.info))
+    }
+
+    private fun setUncertaintyCoinStyle(session: WebSocketSession, uncertaintyId: UncertaintyId, coinStyle: CoinStyle) {
+        val uncertainty = uncertainties[uncertaintyId]
+        if (uncertainty == null) {
+            session.sendMessage(UncertaintyNotFoundMessage(uncertaintyId))
+            return
+        }
+
+        uncertainty.coinStyle = coinStyle
         sendToUncertaintySessions(uncertaintyId, UncertaintyUpdatedMessage(uncertaintyId, uncertainty.info))
     }
 

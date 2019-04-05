@@ -11,6 +11,7 @@ import kotlin.reflect.KProperty
 class Uncertainty(
         val id: UncertaintyId,
         var name: String = "Unnamed Uncertainty",
+        var coinStyle: CoinStyle = CoinStyle.FIRST_WORLD_WAR,
         var decisions: MutableList<CoinFlipResult> = mutableListOf(),
         private val publisher: UncertaintyPublisher) {
 
@@ -40,13 +41,13 @@ class Uncertainty(
         delay(3000)
         publisher.onRotationUpdated(Rotation(z = -0.2))
 
-        delay(4000)
+        delay(3000)
         publisher.onRotationUpdated(Rotation(z = -0.3))
 
-        delay(5000)
+        delay(4000)
         publisher.onRotationUpdated(Rotation(z = -0.4))
 
-        delay(12000)
+        delay(6000)
         decisions.add(decision)
         publisher.onDecisionMade(decision, decisions)
 
@@ -59,7 +60,10 @@ class Uncertainty(
         return "Uncertainty(id=$id, name='$name')"
     }
 
-    val info get() = UncertaintyInfo(name, decisions)
+    val info get() = UncertaintyInfo(
+        name = name,
+        coinStyle = coinStyle,
+        decisions = decisions)
 
 }
 
