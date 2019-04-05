@@ -4,6 +4,7 @@ const COINS = [
     'FIRST_WORLD_WAR',
     'GERMANY',
     'EU_GERMANY',
+    'USA'
 ];
 
 class DecideratorApp {
