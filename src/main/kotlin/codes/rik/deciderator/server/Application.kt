@@ -1,6 +1,5 @@
 package codes.rik.deciderator.server
 
-import org.graalvm.compiler.hotspot.debug.BenchmarkCounters.enabled
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Configuration
