@@ -1,0 +1,123 @@
+@import "~bootswatch/dist/cyborg/variables";
+
+ul { // for some reason, this doesn't work if nested inside anything i.e. popover
+  margin-bottom: 0;
+  margin-block-start: 0;
+  margin-block-end: 0;
+  padding-inline-start: 0.75rem;
+}
+
+nav {
+  #uncertainty-name {
+    margin-right: 0;
+    font-variant: small-caps;
+
+    .info {
+      cursor: pointer;
+
+      .hover {
+        display: none;
+      }
+
+      .nohover {
+        display: inline;
+      }
+
+      &:hover {
+        .hover {
+          display: inline;
+        }
+        .nohover {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+main {
+  background-size: cover;
+  background-image: url("https://external-preview.redd.it/35S_3x7NBOHQTO75sWe9tSI-L1Ded2LIIfdUFzi3v5A.jpg?auto=webp&s=80c8c6d1f36171683e70a458b895bafd41ae51e2");
+  padding-top: 15px;
+  padding-bottom:15px;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+
+  .col {
+    font-variant: small-caps;
+
+    // all cards
+    .card {
+      background-color: rgba(0, 0, 0, .5);
+    }
+
+    // the containing card
+    .card {
+      height: 100%;
+    }
+  }
+
+  #coin-col .card {
+    background-color: rgba(0, 0, 0, .75);
+  }
+
+}
+
+footer.options-footer {
+
+  padding: 15px;
+  margin-right: 0;
+
+  .options-list {
+    font-variant: small-caps;
+
+    >.col:last-child {
+      padding-right: 0;
+    }
+
+    .col {
+      opacity: 0.75;
+
+      .svg-container {
+        height: 48px;
+        text-align: center;
+      }
+
+      svg {
+        display: none;
+      }
+
+      &.active {
+        opacity: 1.0 !important;
+
+        svg.active {
+          display: inline;
+          color: $primary;
+        }
+
+        .card {
+          background-color: $primary;
+          color: $white;
+        }
+      }
+
+      &.eliminated {
+        opacity: 0.3;
+
+        svg.eliminated {
+          display: inline;
+          color: $danger;
+        }
+
+        .card {
+          background-color: $danger;
+          color: $black;
+        }
+      }
+
+      .card {
+        text-align: center
+      }
+    }
+  }
+}

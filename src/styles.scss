@@ -1,1 +1,16 @@
-/* You can add global styles to this file, and also import other style files */
+@import "variables";
+@import "~bootswatch/dist/cyborg/variables";
+@import "~bootstrap/scss/bootstrap.scss";
+@import "~bootswatch/dist/cyborg/bootswatch";
+
+html, body{
+  height:100%;
+}
+
+.flex-fill {
+  flex:1;
+}
+
+.border-700 {
+  border-color: $gray-700 !important;
+}

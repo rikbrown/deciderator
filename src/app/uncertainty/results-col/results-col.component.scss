@@ -1,0 +1,23 @@
+.card {
+  text-align: center;
+}
+
+// coin cards
+.coin-card {
+
+  text-align: left;
+  margin-bottom: 15px;
+
+  .coin-col {
+    flex: 0 0 80px;
+    max-width: 80px;
+    height: 65px;
+
+    >img {
+      height: 100%;
+    }
+  }
+
+}
+
+

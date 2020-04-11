@@ -1,0 +1,90 @@
+<div class="d-flex h-100 flex-column">
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+    <!-- centering: see https://www.codeply.com/go/qhaBrcWp3v -->
+
+    <div class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2">
+      <span class="navbar-text">
+        Uncertainty
+        <span class="badge badge-secondary">{{uncertainty.id}}</span>
+      </span>
+      &nbsp;
+      <span class="navbar-text">
+        <span class="badge badge-info" *ngFor="let user of onlineUsers">{{user}}</span>
+      </span>
+    </div>
+
+    <div class="mx-auto order-0">
+      <span class="navbar-brand abs" id="uncertainty-name">
+        {{uncertainty.name}}
+
+        <ng-template #rulesPopContent>
+          <ul>
+            <li *ngIf="uncertainty.rules.roundVictory.bestOf">Each round is best of <b>{{uncertainty.rules.roundVictory.bestOf}}</b> flips</li>
+            <li *ngIf="uncertainty.rules.finalTwo">Last two standing go head to head</li>
+          </ul>
+        </ng-template>
+        <span class="info" [ngbPopover]="rulesPopContent" popoverClass="rules-popover" popoverTitle="Rules" triggers="mouseenter:mouseleave">
+          <svg class="nohover bi bi-info-circle" width="0.8em" height="0.8em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M8 15A7 7 0 108 1a7 7 0 000 14zm0 1A8 8 0 108 0a8 8 0 000 16z" clip-rule="evenodd"/>
+    <path d="M8.93 6.588l-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588z"/>
+    <circle cx="8" cy="4.5" r="1"/>
+          </svg>
+          <svg class="hover bi bi-info-circle-fill" width="0.8em" height="0.8em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zm.93-9.412l-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM8 5.5a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+          </svg>
+        </span>
+      </span>
+    </div>
+
+    <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+      <div class="ml-auto">
+        <span class="navbar-text">Powered by Deciderator 3.0&trade;</span>
+      </div>
+    </div>
+  </nav>
+
+
+  <main role="main" class="row flex-fill d-flex justify-content-start">
+    <div class="col col-3 results-col">
+      <app-results-col title="Heads" [results]="uncertainty.activeOption.results.heads"></app-results-col>
+    </div>
+
+    <div id="coin-col" class="col col-6 portlet-container portlet-dropzone">
+
+      <div class="card">
+        <div class="card-body">
+          <app-coin></app-coin>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="col col-3 results-col">
+      <app-results-col title="Tails" [results]="uncertainty.activeOption.results.tails"></app-results-col>
+    </div>
+  </main>
+
+  <footer class="options-footer row border border-700">
+    <div class="col">
+      <div class="row options-list">
+        <div class="col" [ngClass]="{'active': option.active, 'eliminated': option.eliminated}" *ngFor="let option of uncertainty.options">
+
+          <div class="svg-container">
+            <svg class="bi bi-caret-down-fill active" width="48px" height="48px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 01.753 1.659l-4.796 5.48a1 1 0 01-1.506 0z"/>
+            </svg>
+            <svg class="bi bi-x-square-fill eliminated" width="38px" height="38px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" d="M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2zm9.854 4.854a.5.5 0 00-.708-.708L8 7.293 4.854 4.146a.5.5 0 10-.708.708L7.293 8l-3.147 3.146a.5.5 0 00.708.708L8 8.707l3.146 3.147a.5.5 0 00.708-.708L8.707 8l3.147-3.146z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              {{option.name}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
