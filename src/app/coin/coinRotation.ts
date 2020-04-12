@@ -2,30 +2,62 @@ import {ElementRef, HostListener} from '@angular/core';
 import * as THREE from 'three';
 import {MathUtils} from 'three';
 import clamp = MathUtils.clamp;
+import {CoinState} from '../core/services/coin/coin.service';
+import {BehaviorSubject, Observable} from 'rxjs';
 
 export class CoinRotation {
   private rendererContainer: ElementRef;
 
   private isMouseDown = false;
+
   private rotateStartPoint = new THREE.Vector3(0, 0, 1);
   private rotateEndPoint = new THREE.Vector3(0, 0, 1);
   private startPoint = {
     x: 0,
     y: 0,
   };
+  private lastMoveTimestamp: Date = new Date();
+  private moveReleaseTimeDelta = 50;
+
   private deltaX = 0;
   private deltaY = 0;
-  private lastMoveTimestamp: Date = null;
-  private moveReleaseTimeDelta = 50;
   private rotationSpeed = 2;
+  private drag = 0.95;
+
   private object: THREE.Mesh;
+
+  private coinState: BehaviorSubject<CoinState>;
 
   constructor(object: THREE.Mesh, rendererContainer: ElementRef) {
     this.object = object;
     this.rendererContainer = rendererContainer;
+    this.coinState = new BehaviorSubject(this.toCoinState());
   }
 
-  onDocumentMouseDown(event) {
+  observeCoinState(): Observable<CoinState> {
+    return this.coinState.asObservable();
+  }
+
+  updateCoinState(coinState: CoinState): void {
+    console.log('updating coin state', coinState);
+
+    if (coinState.rotateDelta) {
+      this.deltaX = coinState.rotateDelta.x;
+      this.deltaY = coinState.rotateDelta.y;
+    }
+    if (coinState.quaternion) {
+      this.object.quaternion.set(
+        coinState.quaternion.x,
+        coinState.quaternion.y,
+        coinState.quaternion.z,
+        coinState.quaternion.w
+      );
+    }
+    this.drag = coinState.drag;
+    this.rotationSpeed = coinState.rotationSpeed;
+  }
+
+  onMouseDown(event) {
     event.preventDefault();
 
     this.isMouseDown = true;
@@ -38,7 +70,7 @@ export class CoinRotation {
     this.rotateStartPoint = this.rotateEndPoint = this.projectOnTrackball(0, 0);
   }
 
-  onDocumentMouseMove(event) {
+  onMouseMove(event) {
     if (!this.isMouseDown) {
       return;
     }
@@ -54,9 +86,9 @@ export class CoinRotation {
     this.lastMoveTimestamp = new Date();
   }
 
-  onDocumentMouseUp(event): [number, number] {
+  onMouseUp(event): [number, number] {
     if (!this.isMouseDown) {
-      return;
+      return [null, null];
     }
 
     if (new Date().getTime() - this.lastMoveTimestamp.getTime() > this.moveReleaseTimeDelta) {
@@ -70,17 +102,16 @@ export class CoinRotation {
   }
 
   handleRotation() {
-    const drag = 0.95;
     const minDelta = 0.05;
 
     if (this.deltaX < -minDelta || this.deltaX > minDelta) {
-      this.deltaX *= drag;
+      this.deltaX *= this.drag;
     } else {
       this.deltaX = 0;
     }
 
     if (this.deltaY < -minDelta || this.deltaY > minDelta) {
-      this.deltaY *= drag;
+      this.deltaY *= this.drag;
     } else {
       this.deltaY = 0;
     }
@@ -94,6 +125,9 @@ export class CoinRotation {
     this.object.setRotationFromQuaternion(curQuaternion);
 
     this.rotateEndPoint = this.rotateStartPoint;
+
+    // Emit event
+    this.coinState.next(this.toCoinState());
   }
 
   private projectOnTrackball(touchX: number, touchY: number): THREE.Vector3 {
@@ -131,6 +165,24 @@ export class CoinRotation {
     }
 
     return quaternion;
+  }
+
+  private toCoinState(): CoinState {
+    return {
+      interactive: true, // FIXME
+      rotateDelta: {
+        x: this.deltaX,
+        y: this.deltaY,
+      },
+      rotationSpeed: this.rotationSpeed,
+      drag: this.drag,
+      quaternion: {
+        w: this.object.quaternion.w,
+        x: this.object.quaternion.x,
+        y: this.object.quaternion.y,
+        z: this.object.quaternion.z,
+      }
+    };
   }
 
 

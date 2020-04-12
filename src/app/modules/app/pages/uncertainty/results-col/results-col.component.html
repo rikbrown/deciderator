@@ -1,7 +1,7 @@
 <div class="card">
   <div class="card-body">
     <h5 class="card-title">
-      {{title}}
+      {{face}}
     </h5>
     <div class="card-text">
 
@@ -9,7 +9,7 @@
         <div class="card-body container">
           <div class="row">
             <div class="coin-col col-3">
-              <img src="https://github.com/rikbrown/deciderator/blob/master/src/main/resources/static/coins/germany/heads.png?raw=true"/>
+              <img src="https://github.com/rikbrown/deciderator/blob/master/src/main/resources/static/coins/{{flip.coinStyle}}/{{face                                                                                      | lowercase }}.png?raw=true"/>
             </div>
             <div class="col">
               <div><b>Flipped by: </b> {{flip.flippedBy}}</div>

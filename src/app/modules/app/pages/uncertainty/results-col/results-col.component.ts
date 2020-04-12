@@ -1,5 +1,5 @@
 import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
-import {FlipResult} from '../uncertainty.component';
+import {FlipResult} from '../../../../../core/services/uncertainty/types';
 
 @Component({
   selector: 'app-results-col',
@@ -7,8 +7,8 @@ import {FlipResult} from '../uncertainty.component';
   styleUrls: ['./results-col.component.scss'],
 })
 export class ResultsColComponent implements OnInit {
-  @Input() title: string;
   @Input() results: FlipResult[];
+  @Input() face: string;
 
   constructor() { }
 

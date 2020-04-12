@@ -1,66 +1,119 @@
-import {AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, HostListener, Input, OnChanges, OnInit, SimpleChanges, ViewChild} from '@angular/core';
 import * as THREE from 'three';
-import * as TrackballControls from 'three-trackballcontrols';
 import {MathUtils} from 'three';
-import clamp = MathUtils.clamp;
 import {CoinRotation} from './coinRotation';
+import {CoinState} from '../core/services/coin/coin.service';
+import {Observable} from 'rxjs';
 
 @Component({
   selector: 'app-coin',
   templateUrl: './coin.component.html',
   styleUrls: ['./coin.component.scss']
 })
-export class CoinComponent implements OnInit, AfterViewInit {
+export class CoinComponent implements OnInit, AfterViewInit, OnChanges {
+  private static readonly FRAME_RATE = 60;
   private static readonly FLIP_TRIGGER_DELTA = 30;
 
-  @ViewChild('rendererContainer') rendererContainer: ElementRef;
+  @Input('style') private coinStyle: string;
+  @Input('state') private coinState: CoinState;
+  @ViewChild('rendererContainer') private rendererContainer: ElementRef;
 
-  coinStyle = 'germany';
-  renderer = CoinComponent.initRenderer();
-  scene = new THREE.Scene();
-  camera = this.initCamera();
-  object: THREE.Mesh = null;
-  animationMethod = null;
-  defaultCamera = null;
-  rotation: CoinRotation = null;
+  private renderer = CoinComponent.initRenderer();
+  private scene = new THREE.Scene();
+  private camera = this.initCamera();
+  private object: THREE.Mesh = null;
+  private animationMethod = null;
+  private defaultCamera = null;
+  private rotation: CoinRotation = null;
 
   ngOnInit(): void {
     this.object = CoinComponent.initObject(this.coinStyle);
     this.scene.add(this.object);
   }
 
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     this.rotation = new CoinRotation(this.object, this.rendererContainer);
     this.renderer.domElement.style.height = '100%';
     this.renderer.domElement.style.width = '100%';
     this.rendererContainer.nativeElement.appendChild(this.renderer.domElement);
     this.defaultCamera = this.camera.clone(true);
+    this.updateCoinStyle();
+    this.updateCoinState();
 
     this.render();
-    setInterval( () => { this.render(); }, 1000 / 60 );
+    setInterval( () => { this.render(); }, 1000 / CoinComponent.FRAME_RATE );
   }
 
-  @HostListener('document:mousedown', ['$event'])
-  onDocumentMouseDown(event) {
-    this.rotation?.onDocumentMouseDown(event);
+  ngOnChanges(changes: SimpleChanges): void {
+    for (const propName of Object.keys(changes)) {
+      switch (propName) {
+        case 'coinStyle':
+          this.updateCoinStyle();
+          break;
+        case 'coinState':
+          this.updateCoinState();
+          break;
+      }
+    }
+  }
+
+  observeCoinState(): Observable<CoinState> {
+    return this.rotation.observeCoinState();
+  }
+
+  @HostListener('mousedown', ['$event'])
+  onComponentMouseDown(event) {
+    this.rotation?.onMouseDown(event);
   }
 
   @HostListener('document:mousemove', ['$event'])
   onDocumentMouseMove(event) {
-    this.rotation?.onDocumentMouseMove(event);
+    this.rotation?.onMouseMove(event);
   }
 
   @HostListener('document:mouseup', ['$event'])
   onDocumentMouseUp(event) {
-    const [deltaX, deltaY] = this.rotation?.onDocumentMouseUp(event);
-    console.log(deltaX, deltaY);
+    const [deltaX, deltaY] = this.rotation?.onMouseUp(event);
+    if (deltaX == null) { return; }
+
+    console.log('quarternion:', this.object.quaternion);
+    console.log('delta:', deltaX, deltaY);
     if (Math.abs(deltaX) > CoinComponent.FLIP_TRIGGER_DELTA || Math.abs(deltaY) > CoinComponent.FLIP_TRIGGER_DELTA) {
-      console.log('FLIP FLIP');
+      this.flip();
     }
   }
 
   flip() {
+    console.log('FLIP FLIP');
+  }
 
+  private updateCoinStyle(): void {
+    if (this.object == null) {
+      // ngOnChange triggered before ngInit, ignore.
+      return;
+    }
+
+    console.log(`Updating coin style to ${this.coinStyle}`);
+    // materials
+    const headTexture = new THREE.TextureLoader().load('assets/img/coins/' + this.coinStyle + '/heads.png');
+    headTexture.flipY = false;
+    headTexture.wrapS = THREE.RepeatWrapping;
+    headTexture.repeat.x = - 1;
+
+    const edgeTexture = new THREE.TextureLoader().load('assets/img/coins/' + this.coinStyle + '/edge.png');
+    // edgeTexture.repeat.x = -1;
+    edgeTexture.repeat.x = 40;
+    edgeTexture.wrapS = edgeTexture.wrapT = THREE.RepeatWrapping;
+
+    this.object.material = [
+      new THREE.MeshBasicMaterial({map: edgeTexture}),
+      new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load('assets/img/coins/' + this.coinStyle + '/tails.png')}),
+      new THREE.MeshBasicMaterial({map: headTexture})
+    ];
+  }
+
+  private updateCoinState(): void {
+    this.rotation?.updateCoinState(this.coinState);
   }
 
   // @HostListener('window:resize', ['$event'])
@@ -122,28 +175,10 @@ export class CoinComponent implements OnInit, AfterViewInit {
     const radialSegments = 50;
     const geometry = new THREE.CylinderGeometry(diameter, diameter, 0.3, radialSegments);
 
-    // materials
-    const headTexture = new THREE.TextureLoader().load('assets/img/coins/' + coinStyle + '/heads.png');
-    headTexture.flipY = false;
-    headTexture.wrapS = THREE.RepeatWrapping;
-    headTexture.repeat.x = - 1;
-
-    const edgeTexture = new THREE.TextureLoader().load('assets/img/coins/' + coinStyle + '/edge.png');
-    // edgeTexture.repeat.x = -1;
-    edgeTexture.repeat.x = 40;
-    edgeTexture.wrapS = edgeTexture.wrapT = THREE.RepeatWrapping;
-
-    const materials = [
-      new THREE.MeshBasicMaterial({ map: edgeTexture }),
-      new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('assets/img/coins/' + coinStyle + '/tails.png') }),
-      new THREE.MeshBasicMaterial({ map: headTexture })
-    ];
-
     // object
-    const object = new THREE.Mesh(geometry, materials);
+    const object = new THREE.Mesh(geometry, []);
     object.rotation.y = 1.5;
 
     return object;
   }
-
 }
