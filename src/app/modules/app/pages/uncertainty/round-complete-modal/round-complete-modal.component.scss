@@ -1,8 +1,21 @@
 @import "../../../../../../../node_modules/bootswatch/dist/cyborg/variables";
 
-.modal-header {
-  background-color: $green;
+.d-modal-content {
+
+  &:not(.eliminated) {
+    border-color: $success;
+
+    .modal-header {
+      background-color: $success;
+    }
+  }
+
+  &.eliminated {
+    border-color: $danger;
+
+    .modal-header {
+      background-color: $danger;
+    }
+  }
 }
-.modal-header, button {
-  font-variant: small-caps;
-}
+

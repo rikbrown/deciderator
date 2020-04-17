@@ -1,22 +1,26 @@
 <ng-template #content let-modal>
-  <div class="modal-header">
-    <h4 class="modal-title" id="modal-basic-title">Round complete!</h4>
-    <button type="button" class="close" aria-label="Close" (click)="modal.close()">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </div>
-  <div class="modal-body">
-    <div *ngIf="option.eliminated">
-      <b>{{option.name}}</b> lost the round and has been <b>eliminated</b>.
+  <div [ngClass]="{'eliminated': option.eliminated}" class="d-modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title" id="modal-basic-title">
+        Round complete!
+      </h4>
+      <button type="button" class="close" aria-label="Close" (click)="modal.close()">
+        <span aria-hidden="true">&times;</span>
+      </button>
     </div>
-    <div *ngIf="!option.eliminated">
-      <b>{{option.name}}</b> won the round and <b>remains</b> in play.
+    <div class="modal-body">
+      <div *ngIf="option.eliminated">
+        <b>{{option.name}}</b> lost the round and has been <b>eliminated</b>.
+      </div>
+      <div *ngIf="!option.eliminated">
+        <b>{{option.name}}</b> won the round and <b>remains</b> in play.
+      </div>
     </div>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn" [ngClass]="{'btn-outline-danger': option.eliminated, 'btn-outline-success': !option.eliminated}" (click)="modal.close()">
-      <span *ngIf="option.eliminated">We will remember them.</span>
-      <span *ngIf="!option.eliminated">The fight is not yet over.</span>
-    </button>
+    <div class="modal-footer">
+      <button ngbAutofocus type="button" class="btn" [ngClass]="{'btn-outline-danger': option.eliminated, 'btn-outline-success': !option.eliminated}" (click)="modal.close()">
+        <span *ngIf="option.eliminated">We will remember them.</span>
+        <span *ngIf="!option.eliminated">The fight is not yet over.</span>
+      </button>
+    </div>
   </div>
 </ng-template>

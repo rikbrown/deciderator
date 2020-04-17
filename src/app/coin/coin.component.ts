@@ -1,6 +1,17 @@
-import {AfterViewInit, Component, ElementRef, HostListener, Input, OnChanges, OnInit, SimpleChanges, ViewChild} from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import * as THREE from 'three';
-import {MathUtils} from 'three';
+import {BufferGeometry, Material, MathUtils, Texture} from 'three';
 import {CoinRotation} from './coinRotation';
 import {CoinState} from '../core/services/coin/coin.service';
 import {Observable} from 'rxjs';
@@ -10,7 +21,7 @@ import {Observable} from 'rxjs';
   templateUrl: './coin.component.html',
   styleUrls: ['./coin.component.scss']
 })
-export class CoinComponent implements OnInit, AfterViewInit, OnChanges {
+export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   private static readonly FRAME_RATE = 60;
   private static readonly FLIP_TRIGGER_DELTA = 30;
 
@@ -24,7 +35,11 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges {
   private object: THREE.Mesh = null;
   private animationMethod = null;
   private defaultCamera = null;
+  private headTexture: THREE.Texture = null;
+  private edgeTexture: THREE.Texture = null;
+  private tailTexture: THREE.Texture = null;
   private rotation: CoinRotation = null;
+  private interval = null;
 
   ngOnInit(): void {
     this.object = CoinComponent.initObject(this.coinStyle);
@@ -41,7 +56,7 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges {
     this.updateCoinState();
 
     this.render();
-    setInterval( () => { this.render(); }, 1000 / CoinComponent.FRAME_RATE );
+    this.interval = setInterval( () => { this.render(); }, 1000 / CoinComponent.FRAME_RATE );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -57,12 +72,22 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges {
     }
   }
 
+  ngOnDestroy(): void {
+    console.log('Cleaning up...');
+
+    clearInterval(this.interval);
+    this.disposeTextures();
+    this.object?.geometry.dispose();
+    this.scene.dispose();
+    this.renderer.dispose();
+  }
+
   observeCoinState(): Observable<CoinState> {
     return this.rotation.observeCoinState();
   }
 
   @HostListener('mousedown', ['$event'])
-  onComponentMouseDown(event) {
+  onComponentMouseDown(event): void {
     this.rotation?.onMouseDown(event);
   }
 
@@ -94,22 +119,33 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     console.log(`Updating coin style to ${this.coinStyle}`);
-    // materials
-    const headTexture = new THREE.TextureLoader().load('assets/img/coins/' + this.coinStyle + '/heads.png');
-    headTexture.flipY = false;
-    headTexture.wrapS = THREE.RepeatWrapping;
-    headTexture.repeat.x = - 1;
+    this.disposeTextures();
 
-    const edgeTexture = new THREE.TextureLoader().load('assets/img/coins/' + this.coinStyle + '/edge.png');
+    // materials
+    this.headTexture = new THREE.TextureLoader().load('assets/img/coins/' + this.coinStyle + '/heads.png');
+    this.headTexture.flipY = false;
+    this.headTexture.wrapS = THREE.RepeatWrapping;
+    this.headTexture.repeat.x = - 1;
+
+    this.edgeTexture = new THREE.TextureLoader().load('assets/img/coins/' + this.coinStyle + '/edge.png');
     // edgeTexture.repeat.x = -1;
-    edgeTexture.repeat.x = 40;
-    edgeTexture.wrapS = edgeTexture.wrapT = THREE.RepeatWrapping;
+    this.edgeTexture.repeat.x = 40;
+    this.edgeTexture.wrapS = this.edgeTexture.wrapT = THREE.RepeatWrapping;
+
+    this.tailTexture = new THREE.TextureLoader().load('assets/img/coins/' + this.coinStyle + '/tails.png');
 
     this.object.material = [
-      new THREE.MeshBasicMaterial({map: edgeTexture}),
-      new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load('assets/img/coins/' + this.coinStyle + '/tails.png')}),
-      new THREE.MeshBasicMaterial({map: headTexture})
+      new THREE.MeshBasicMaterial({map: this.edgeTexture}),
+      new THREE.MeshBasicMaterial({map: this.tailTexture}),
+      new THREE.MeshBasicMaterial({map: this.headTexture})
     ];
+  }
+
+  private disposeTextures(): void {
+    (this.object?.material as Material[]).forEach((mat) => mat.dispose());
+    this.headTexture?.dispose();
+    this.edgeTexture?.dispose();
+    this.tailTexture?.dispose();
   }
 
   private updateCoinState(): void {

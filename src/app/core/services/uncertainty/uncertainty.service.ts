@@ -1,17 +1,19 @@
 import { Injectable } from '@angular/core';
-import {BehaviorSubject, Observable} from 'rxjs';
+import {BehaviorSubject, Observable, throwError} from 'rxjs';
 import {Uncertainty} from './types';
 import {single} from 'rxjs/operators';
 import { of } from 'rxjs';
 
 @Injectable()
 export abstract class UncertaintyService {
+  abstract createUncertainty(uncertainty: Uncertainty): Observable<Uncertainty>;
   abstract getUncertainty(id: string): Observable<Uncertainty>;
+  abstract nextRound(uncertaintyId: string): void;
 }
 
 @Injectable()
 export class UncertaintyMockService extends UncertaintyService {
-  private readonly UNCERTAINTY: Uncertainty = {
+  private readonly DATA: Uncertainty = {
     id: 'WHD',
     name: 'What game should we play next?',
     rules: {
@@ -27,7 +29,7 @@ export class UncertaintyMockService extends UncertaintyService {
         name: 'Civ VI',
         eliminated: false,
         active: {
-          roundComplete: false,
+          roundComplete: true,
           coinStyle: 'usa',
           results: {
             heads: [
@@ -82,7 +84,33 @@ export class UncertaintyMockService extends UncertaintyService {
     ]
   };
 
-  getUncertainty(id: string): Observable<Uncertainty> {
-    return new BehaviorSubject(this.UNCERTAINTY).asObservable();
+  private readonly UNCERTAINTY: BehaviorSubject<Uncertainty> = new BehaviorSubject(this.DATA);
+
+  createUncertainty(uncertainty: Uncertainty): Observable<Uncertainty> {
+    if (uncertainty.name === 'test') {
+      return this.UNCERTAINTY.asObservable();
+    } else {
+      return throwError('Something is broken');
+    }
   }
+
+  getUncertainty(id: string): Observable<Uncertainty> {
+    if (id === 'foo') {
+      return this.UNCERTAINTY.asObservable();
+    } else {
+      return throwError('Uncertainty does not exist');
+    }
+  }
+
+  nextRound(uncertaintyId: string): void {
+    const d2: Uncertainty = JSON.parse(JSON.stringify(this.DATA));
+    // d2.name = 'foo';
+    d2.options[3].active = d2.options[1].active;
+    d2.options[3].active.roundComplete = false;
+    d2.options[3].active.results.heads = [];
+    d2.options[3].active.results.tails = [];
+    d2.options[1].active = null;
+    this.UNCERTAINTY.next(d2);
+  }
+
 }

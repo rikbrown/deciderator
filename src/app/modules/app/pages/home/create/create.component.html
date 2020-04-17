@@ -1,0 +1,71 @@
+<ng-template #content let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Create Uncertainty</h4>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <form #createForm="ngForm" (ngSubmit)="onSubmit()">
+    <fieldset [disabled]="submitted">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="create-title">Title</label>
+          <input
+            ngbAutofocus
+            [(ngModel)]="uncertainty.name"
+            id="create-title"
+            name="create-title"
+            type="text"
+            class="form-control"
+            required
+            placeholder="(e.g. What game should we play?)">
+        </div>
+
+        <div class="form-group">
+          <label>Choices</label>
+
+
+          <div class="input-group" *ngFor="let option of uncertainty.options; let i = index">
+            <div class="input-group-prepend">
+              <div class="input-group-text">{{i + 1}}</div>
+            </div>
+            <input
+              #optionElement="ngModel"
+              [(ngModel)]="option.name"
+              type="text"
+              class="form-control"
+              name="option_{{i}}"
+              placeholder="(e.g. Stellaris - empty/duplicate choices will be removed)"
+            >
+          </div>
+
+          <div class="input-group" id="add-option">
+            <div class="input-group-prepend">
+              <div class="input-group-text">
+                <button (click)="addChoice()" type="button" class="btn btn-secondary">+</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div [hidden]="!failure" class="alert alert-danger">
+          {{failure}}
+        </div>
+      </div>
+
+      <div class="modal-footer">
+
+        <button
+          [disabled]="createForm.invalid || !optionsValid"
+          type="submit"
+          class="btn btn-success"
+        >
+          Creat<span *ngIf="submitted">ing...</span><span *ngIf="!submitted">e</span>
+        </button>
+      </div>
+    </fieldset>
+  </form>
+
+</ng-template>

@@ -10,13 +10,13 @@ export abstract class CoinService {
 @Injectable()
 export class CoinMockService extends CoinService {
   private coinState: BehaviorSubject<CoinState> = new BehaviorSubject({
-    interactive: true,
+    interactive: false,
     rotateDelta: {
       x: -7.22,
       y: 4.5125,
     },
     rotationSpeed: 2,
-    drag: 0.95,
+    drag: 0.9, // 1 = non stop
     quaternion: {
       w: 0.6233080949371493,
       x: 0.31838700000619874,
@@ -34,8 +34,8 @@ export class CoinMockService extends CoinService {
       return;
     }
 
-    // console.log(`coinState update: ${coinState}`);
-    // this.coinState.next(coinState);
+    console.log('coinState update', coinState);
+    this.coinState.next(coinState);
   }
 }
 

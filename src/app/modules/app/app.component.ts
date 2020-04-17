@@ -6,19 +6,7 @@ import {UncertaintyService} from '../../core/services/uncertainty/uncertainty.se
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   title = 'Deciderator 3.0';
-  uncertainty = null;
-
-  constructor(
-    private service: UncertaintyService
-  ) {}
-
-  ngOnInit() {
-    this.service.getUncertainty('foo').subscribe(uncertainty => {
-      this.uncertainty = uncertainty;
-      console.log(this.uncertainty);
-    });
-  }
 
 }

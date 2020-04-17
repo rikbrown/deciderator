@@ -1,0 +1,38 @@
+<ng-template #content let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Join Uncertainty</h4>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <form #joinForm="ngForm" (ngSubmit)="onSubmit()">
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="uncertainty-id">Please enter the Uncertainty Code:</label>
+        <div class="input-group">
+          <input
+            [disabled]="submitted"
+            [(ngModel)]="uncertaintyId"
+            #uncertaintyIdField="ngModel"
+            ngbAutofocus
+            id="uncertainty-id"
+            name="uncertainty-id"
+            class="form-control"
+            required>
+        </div>
+        <div [hidden]="!failure" class="alert alert-danger">
+          {{failure}}
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button
+        [disabled]="submitted || joinForm.invalid"
+        type="submit"
+        class="btn btn-primary"
+      >
+        Join<span *ngIf="submitted">ing...</span>
+      </button>
+    </div>
+  </form>
+</ng-template>

@@ -37,19 +37,21 @@ nav {
 
 main {
   background-size: cover;
-  background-image: url("https://external-preview.redd.it/35S_3x7NBOHQTO75sWe9tSI-L1Ded2LIIfdUFzi3v5A.jpg?auto=webp&s=80c8c6d1f36171683e70a458b895bafd41ae51e2");
   padding-top: 15px;
   padding-bottom:15px;
   margin-left: 0 !important;
   margin-right: 0 !important;
 
+  &[data-round-name*="Civ"], &[data-round-name*="civ"] {
+    background-image: url("/assets/img/bgs/civ6.jpg");
+  }
+
+  &[data-round-name*="Stellaris"], &[data-round-name*="stellaris"] {
+    background-image: url("/assets/img/bgs/stellaris.jpg");
+  }
+
   .col {
     font-variant: small-caps;
-
-    // all cards
-    .card {
-      background-color: rgba(0, 0, 0, .5);
-    }
 
     // the containing card
     .card {

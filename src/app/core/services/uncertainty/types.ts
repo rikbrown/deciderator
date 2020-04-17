@@ -13,7 +13,7 @@ export interface UncertaintyRules {
 export interface UncertaintyOption {
   name: string;
   active?: ActiveUncertaintyProperties;
-  eliminated: boolean;
+  eliminated?: boolean;
 }
 
 export interface ActiveUncertaintyProperties {

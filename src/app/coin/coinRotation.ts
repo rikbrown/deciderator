@@ -3,11 +3,12 @@ import * as THREE from 'three';
 import {MathUtils} from 'three';
 import clamp = MathUtils.clamp;
 import {CoinState} from '../core/services/coin/coin.service';
-import {BehaviorSubject, Observable} from 'rxjs';
+import {BehaviorSubject, Observable, Subject} from 'rxjs';
 
 export class CoinRotation {
   private rendererContainer: ElementRef;
 
+  private interactive = false;
   private isMouseDown = false;
 
   private rotateStartPoint = new THREE.Vector3(0, 0, 1);
@@ -26,12 +27,12 @@ export class CoinRotation {
 
   private object: THREE.Mesh;
 
-  private coinState: BehaviorSubject<CoinState>;
+  private readonly coinState: Subject<CoinState>;
 
   constructor(object: THREE.Mesh, rendererContainer: ElementRef) {
     this.object = object;
     this.rendererContainer = rendererContainer;
-    this.coinState = new BehaviorSubject(this.toCoinState());
+    this.coinState = new Subject();
   }
 
   observeCoinState(): Observable<CoinState> {
@@ -39,7 +40,7 @@ export class CoinRotation {
   }
 
   updateCoinState(coinState: CoinState): void {
-    console.log('updating coin state', coinState);
+    console.log('Updating coin state', coinState);
 
     if (coinState.rotateDelta) {
       this.deltaX = coinState.rotateDelta.x;
@@ -55,10 +56,19 @@ export class CoinRotation {
     }
     this.drag = coinState.drag;
     this.rotationSpeed = coinState.rotationSpeed;
+    this.interactive = coinState.interactive;
+
+    if (!this.interactive && this.isMouseDown) {
+      this.isMouseDown = false;
+    }
   }
 
-  onMouseDown(event) {
+  onMouseDown(event): void {
     event.preventDefault();
+
+    if (!this.interactive) {
+      return;
+    }
 
     this.isMouseDown = true;
 
@@ -70,8 +80,12 @@ export class CoinRotation {
     this.rotateStartPoint = this.rotateEndPoint = this.projectOnTrackball(0, 0);
   }
 
-  onMouseMove(event) {
+  onMouseMove(event): void {
     if (!this.isMouseDown) {
+      return;
+    }
+
+    if (!this.interactive) {
       return;
     }
 
@@ -88,6 +102,10 @@ export class CoinRotation {
 
   onMouseUp(event): [number, number] {
     if (!this.isMouseDown) {
+      return [null, null];
+    }
+
+    if (!this.interactive) {
       return [null, null];
     }
 
@@ -127,7 +145,9 @@ export class CoinRotation {
     this.rotateEndPoint = this.rotateStartPoint;
 
     // Emit event
-    this.coinState.next(this.toCoinState());
+    if (this.isMouseDown) {
+      this.coinState.next(this.toCoinState());
+    }
   }
 
   private projectOnTrackball(touchX: number, touchY: number): THREE.Vector3 {

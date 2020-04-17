@@ -14,3 +14,43 @@ html, body{
 .border-700 {
   border-color: $gray-700 !important;
 }
+
+.modal {
+
+  button {
+    font-variant: small-caps;
+  }
+
+  .d-modal-content {
+    border-radius: inherit;
+    border: inherit;
+  }
+
+  .modal-header {
+    font-variant: small-caps;
+  }
+
+  .alert:last-child {
+    margin-bottom: 0 !important;
+  }
+
+  /* modal animation */
+  .modal-dialog {
+    animation-name: fadeIn;
+    animation-duration: 0.3s;
+  }
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+}
+
+
+::placeholder {
+  color: $gray-400 !important;
+}
