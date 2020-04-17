@@ -50,12 +50,15 @@ export class RoundCompleteModalComponent implements AfterViewInit, OnChanges {
   open() {
     this.modalRef = this.modalService.open(this.contentTmpl, {
       centered: true,
+      beforeDismiss: () => false,
     });
 
-    this.modalRef.result.then(() => {
-      this.modalRef = null;
-      this.nextRound();
-    }, () => {});
+    this.modalRef.result.then((noTrigger) => {
+      if (!noTrigger) {
+        this.modalRef = null;
+        this.nextRound();
+      }
+    });
   }
 
   nextRound() {
@@ -67,7 +70,7 @@ export class RoundCompleteModalComponent implements AfterViewInit, OnChanges {
     if ((!before?.active?.roundComplete || before?.name !== this.option.name) && this.option.active?.roundComplete) {
       this.open();
     } else if (before?.active?.roundComplete && !this.option.active?.roundComplete) {
-      this.modalRef?.dismiss(); // doesn't trigger (closed)
+      this.modalRef?.close(true); // doesn't trigger (closed)
     }
   }
 

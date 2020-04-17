@@ -42,7 +42,7 @@ export class UncertaintyComponent implements OnInit {
 })
 export class UncertaintyInnerComponent implements OnInit, AfterViewInit, OnChanges {
   onlineUsers = ['Rik', 'Mark'];
-  availableCoinStyles = ['germany', 'eu_germany', 'usa'];
+  availableCoinStyles = ['germany', 'eu_germany', 'usa', 'usa_trump'];
   coinState = null;
 
   @Input() uncertainty: Uncertainty = null;

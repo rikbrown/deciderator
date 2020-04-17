@@ -10,7 +10,7 @@ export abstract class CoinService {
 @Injectable()
 export class CoinMockService extends CoinService {
   private coinState: BehaviorSubject<CoinState> = new BehaviorSubject({
-    interactive: false,
+    interactive: true,
     rotateDelta: {
       x: -7.22,
       y: 4.5125,

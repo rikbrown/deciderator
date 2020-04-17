@@ -2,7 +2,8 @@
   <div [ngClass]="{'eliminated': option.eliminated}" class="d-modal-content">
     <div class="modal-header">
       <h4 class="modal-title" id="modal-basic-title">
-        Round complete!
+        <span *ngIf="option.eliminated">Eliminated!</span>
+        <span *ngIf="!option.eliminated">Round complete!</span>
       </h4>
       <button type="button" class="close" aria-label="Close" (click)="modal.close()">
         <span aria-hidden="true">&times;</span>
