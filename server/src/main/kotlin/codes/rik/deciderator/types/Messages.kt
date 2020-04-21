@@ -16,7 +16,8 @@ object Messages {
   data class LeaveUncertaintyRequest(val uncertaintyId: UncertaintyId) : UncertaintyRequest
   data class GetUncertaintyRequest(val uncertaintyId: UncertaintyId) : UncertaintyRequest
   data class SetUsernameRequest(val username: String) : UncertaintyRequest
-  data class UpdateCoinStateRequest(val uncertaintyId: UncertaintyId, val coinState: CoinState): UncertaintyRequest
+  data class UpdateCoinStyleRequest(val uncertaintyId: UncertaintyId, val coinStyle: String) : UncertaintyRequest
+  data class UpdateCoinStateRequest(val uncertaintyId: UncertaintyId, val coinState: CoinState) : UncertaintyRequest
 
   @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
   interface UncertaintyMessage

@@ -8,6 +8,7 @@ import codes.rik.deciderator.types.UncertaintyId
 import codes.rik.deciderator.types.UncertaintyOption
 import codes.rik.deciderator.types.UncertaintyRules
 import org.apache.commons.lang3.RandomStringUtils
+import java.lang.RuntimeException
 import java.time.Duration
 import kotlin.random.Random
 
@@ -78,6 +79,23 @@ object UncertaintyManager {
 
   fun get(id: UncertaintyId): Uncertainty? {
     return uncertainties[id]
+  }
+
+  fun updateCoinStyle(uncertaintyId: UncertaintyId, style: String) {
+    val uncertainty = uncertainties[uncertaintyId] ?: throw RuntimeException("Unknown uncertainty: $uncertaintyId")
+
+    uncertainties[uncertaintyId] = uncertainty.copy(
+      options = uncertainty.options
+        .map {
+          if (it.active != null) {
+            it.copy(active = it.active.copy(
+              coinStyle = style
+            ))
+          } else {
+            it
+          }
+        }
+    )
   }
 
   private fun createId(): UncertaintyId {

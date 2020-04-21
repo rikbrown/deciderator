@@ -7,6 +7,7 @@ import {filter, map} from 'rxjs/operators';
 export abstract class CoinService {
   abstract observeCoinState(uncertaintyId: string): Observable<CoinState>;
   abstract updateCoinState(uncertaintyId: string, coinState: CoinState): void;
+  abstract updateCoinStyle(uncertaintyId: string, coinStyle: string): void;
 }
 
 @Injectable()
@@ -56,6 +57,11 @@ export class DecideratorCoinService extends CoinService {
   updateCoinState(uncertaintyId: string, coinState: CoinState): void {
     const request: UpdateCoinStateRequest = { uncertaintyId, coinState };
     this.decideratorSocketService.send('UpdateCoinStateRequest', request);
+  }
+
+  updateCoinStyle(uncertaintyId: string, coinStyle: string): void {
+    const request: UpdateCoinStyleRequest = { uncertaintyId, coinStyle };
+    this.decideratorSocketService.send('UpdateCoinStyleRequest', request);
   }
 
 }

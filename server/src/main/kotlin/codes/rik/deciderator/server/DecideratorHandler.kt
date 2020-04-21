@@ -51,7 +51,16 @@ object DecideratorHandler : TextWebSocketHandler() {
       is SetUsernameRequest -> setUsername(session, msg)
       is LeaveUncertaintyRequest -> leaveUncertainty(session, msg)
       is UpdateCoinStateRequest -> updateCoinState(msg, session)
+      is Messages.UpdateCoinStyleRequest -> updateCoinStyle(msg, session)
     }
+  }
+
+  fun getUncertaintySessions(uncertaintyId: UncertaintyId): Set<WebSocketSession> {
+    return sessionUncertainty
+      .filterValues { it == uncertaintyId }
+      .keys
+      .mapNotNull { sessions[it] }
+      .toSet()
   }
 
   private fun setUsername(session: WebSocketSession, msg: SetUsernameRequest) {

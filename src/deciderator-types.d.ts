@@ -115,3 +115,8 @@ interface UpdateCoinStateRequest extends UncertaintyRequest {
   coinState: CoinState;
   uncertaintyId: string;
 }
+
+interface UpdateCoinStyleRequest extends UncertaintyRequest {
+  coinStyle: string;
+  uncertaintyId: string;
+}

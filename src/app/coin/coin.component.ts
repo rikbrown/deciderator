@@ -86,10 +86,6 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestro
     this.renderer.dispose();
   }
 
-  observeCoinState(): Observable<CoinState> {
-    return this.rotation.observeCoinState();
-  }
-
   @HostListener('mousedown', ['$event'])
   onComponentMouseDown(event): void {
     this.rotation?.onMouseDown(event);
@@ -146,6 +142,8 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestro
       new THREE.MeshBasicMaterial({map: this.tailTexture}),
       new THREE.MeshBasicMaterial({map: this.headTexture})
     ];
+
+    this.coinService.updateCoinStyle(this.uncertaintyId, this.coinStyle);
   }
 
   private disposeTextures(): void {
