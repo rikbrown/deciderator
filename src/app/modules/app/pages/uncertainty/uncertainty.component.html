@@ -1,4 +1,4 @@
-<app-round-complete-modal [option]="activeOption" [uncertaintyId]="uncertainty.id"></app-round-complete-modal>
+<app-round-complete-modal *ngIf="uncertainty" [option]="activeOption" [uncertaintyId]="uncertainty.id"></app-round-complete-modal>
 
 <div class="d-flex h-100 flex-column">
   <nav class="navbar navbar-expand-md navbar-dark bg-dark">
@@ -9,9 +9,11 @@
         Uncertainty
         <span class="badge badge-secondary" *ngIf="uncertainty">{{uncertainty.id}}</span>
       </span>
-      &nbsp;
-      <span class="navbar-text">
-        <span class="badge badge-info" *ngFor="let user of onlineUsers">{{user}}</span>
+
+      <span *ngFor="let user of onlineUsers">&nbsp;
+        <span class="navbar-text">
+            <span class="badge badge-info" [ngClass]="{ 'badge-primary': user.self, 'badge-info': !user.self }">{{user.username}}</span>
+        </span>
       </span>
     </div>
 
@@ -50,7 +52,7 @@
     <div class="col col-3 results-col">
       <app-results-col
         face="Heads"
-        [results]="activeOption.active.results.heads"
+        [results]="activeHeads"
       ></app-results-col>
     </div>
 
@@ -72,7 +74,7 @@
     <div class="col col-3 results-col">
       <app-results-col
         face="Tails"
-        [results]="activeOption.active.results.tails"
+        [results]="activeTails"
       ></app-results-col>
     </div>
   </main>

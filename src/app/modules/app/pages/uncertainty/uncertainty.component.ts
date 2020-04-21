@@ -3,34 +3,59 @@ import {
   ChangeDetectorRef,
   Component,
   Input,
-  OnChanges,
+  OnChanges, OnDestroy,
   OnInit,
   SimpleChanges,
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
 import {RoundCompleteModalComponent} from './round-complete-modal/round-complete-modal.component';
-import {Uncertainty, UncertaintyOption} from '../../../../core/services/uncertainty/types';
 import {CoinService} from '../../../../core/services/coin/coin.service';
 import {CoinComponent} from '../../../../coin/coin.component';
-import {UncertaintyService} from '../../../../core/services/uncertainty/uncertainty.service';
+import {UncertaintyService, UncertaintyUser} from '../../../../core/services/uncertainty/uncertainty.service';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {OnDestroyMixin, untilComponentDestroyed} from '@w11k/ngx-componentdestroyed';
+import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: 'app-uncertainty',
-  template: '<app-uncertainty-inner [uncertainty]="uncertainty"></app-uncertainty-inner>'
+  template: '<app-uncertainty-inner [uncertainty]="uncertainty" [onlineUsers]="onlineUsers"></app-uncertainty-inner>'
 })
-export class UncertaintyComponent implements OnInit {
-  @Input() uncertaintyId: string;
+export class UncertaintyComponent extends OnDestroyMixin implements OnInit, OnDestroy {
   uncertainty: Uncertainty = null;
+  onlineUsers: UncertaintyUser[] = [];
 
-  constructor(private service: UncertaintyService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private service: UncertaintyService
+  ) {
+    super();
+  }
 
   ngOnInit() {
-    this.service.getUncertainty('foo').subscribe(uncertainty => {
-      this.uncertainty = uncertainty;
-      console.log(this.uncertainty);
-    });
+    const uncertaintyId = this.route.snapshot.paramMap.get('uncertaintyId');
+
+    this.service.observeUncertaintyUsers(uncertaintyId)
+      .pipe(untilComponentDestroyed(this))
+      .subscribe(users => this.onlineUsers = users);
+
+    this.service.joinUncertainty(uncertaintyId)
+      .subscribe(uncertainty => {
+        this.uncertainty = uncertainty;
+      });
+
+    this.service.observeUncertainty(uncertaintyId)
+      .pipe(untilComponentDestroyed(this))
+      .subscribe(uncertainty => {
+        this.uncertainty = uncertainty;
+      });
+  }
+
+  ngOnDestroy(): void {
+    super.ngOnDestroy();
+    if (this.uncertainty != null) {
+      this.service.leaveUncertainty(this.uncertainty.id);
+    }
   }
 }
 
@@ -40,30 +65,41 @@ export class UncertaintyComponent implements OnInit {
   styleUrls: ['./uncertainty.component.scss'],
   // encapsulation: ViewEncapsulation.None
 })
-export class UncertaintyInnerComponent implements OnInit, AfterViewInit, OnChanges {
-  onlineUsers = ['Rik', 'Mark'];
+export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit, AfterViewInit, OnChanges {
   availableCoinStyles = ['germany', 'eu_germany', 'usa', 'usa_trump'];
   coinState = null;
 
   @Input() uncertainty: Uncertainty = null;
+  @Input() onlineUsers: UncertaintyUser[] = [];
 
   @ViewChild(RoundCompleteModalComponent) private roundCompleteModal: RoundCompleteModalComponent;
   @ViewChild(CoinComponent) private coinComponent: CoinComponent;
 
   constructor(
     private coinService: CoinService,
-    private uncertaintyService: UncertaintyService) {}
+    private uncertaintyService: UncertaintyService) {
+    super();
+  }
 
   get activeOption(): UncertaintyOption {
-    return this.uncertainty.options.find(it => it.active);
+    return this.uncertainty?.options.find(it => it.active);
+  }
+
+  get activeTails(): FlipResult[] {
+    return this.activeOption.active.results.filter(it => it.result === 'TAILS');
+  }
+
+  get activeHeads(): FlipResult[] {
+    return this.activeOption.active.results.filter(it => it.result === 'HEADS');
   }
 
   ngOnInit(): void {
-    this.coinService.observeCoinState('foo').subscribe(coinState => this.coinState = coinState);
+    this.coinService.observeCoinState('foo')
+      .pipe(untilComponentDestroyed(this))
+      .subscribe(coinState => this.coinState = coinState);
   }
 
   ngAfterViewInit(): void {
-    this.coinComponent.observeCoinState().subscribe(it => this.coinService.updateCoinState('foo', it));
   }
 
   ngOnChanges(changes: SimpleChanges): void {

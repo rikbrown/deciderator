@@ -1,5 +1,4 @@
 import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
-import {FlipResult} from '../../../../../core/services/uncertainty/types';
 
 @Component({
   selector: 'app-results-col',

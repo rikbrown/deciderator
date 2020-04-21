@@ -20,6 +20,8 @@
     "@angular/platform-browser-dynamic": "~9.1.0",
     "@angular/router": "~9.1.0",
     "@ng-bootstrap/ng-bootstrap": "^6.0.2",
+    "@types/sockjs-client": "^1.1.1",
+    "@w11k/ngx-componentdestroyed": "^5.0.2",
     "bootstrap": "^4.4.1",
     "bootstrap-icons": "^1.0.0-alpha3",
     "bootswatch": "^4.4.1",
@@ -27,9 +29,12 @@
     "humanize-duration-ts": "^2.1.1",
     "jquery": "^3.4.1",
     "rxjs": "~6.5.4",
+    "socket.io": "^2.3.0",
+    "sockjs-client": "^1.4.0",
     "three": "^0.115.0",
     "three-trackballcontrols": "0.0.8",
     "tslib": "^1.10.0",
+    "typescript-logging": "^0.6.4",
     "zone.js": "~0.10.2"
   },
   "devDependencies": {

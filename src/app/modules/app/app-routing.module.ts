@@ -5,7 +5,7 @@ import {UncertaintyComponent} from './pages/uncertainty/uncertainty.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
-  { path: 'uncertainty/:id', component: UncertaintyComponent },
+  { path: 'uncertainty/:uncertaintyId', component: UncertaintyComponent },
 ];
 
 @NgModule({

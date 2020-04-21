@@ -65,3 +65,6 @@ import 'zone.js/dist/zone';  // Included with Angular CLI.
 /***************************************************************************************************
  * APPLICATION IMPORTS
  */
+
+// https://stackoverflow.com/questions/51380166/angular-6-browser-crypto-js3-uncaught-referenceerror-global-is-not-defined/51380307
+(window as any).global = window;

@@ -27,7 +27,17 @@
 
   <footer class="mastfoot mt-auto">
     <div class="inner">
-      <p>&copy; 2013-2020 WWHD</p>
+      <p>
+        <span class="text-muted">&copy; 2013-2020 WWHD
+          | Session ID: <span class="badge badge-secondary">{{sessionId || '(Connecting)'}}</span>
+          <span *ngIf="onlineSessionIds"> | Online:
+            <span class="online-users">
+              <span *ngFor="let sessionId of onlineSessionIds"><span class="badge badge-info">{{sessionId}}</span>&nbsp;</span>
+            </span>
+          </span>
+        </span>
+      </p>
+
     </div>
   </footer>
 </div>

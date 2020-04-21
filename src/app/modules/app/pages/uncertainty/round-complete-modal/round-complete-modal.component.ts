@@ -11,7 +11,6 @@ import {
   ViewChild
 } from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {UncertaintyOption} from '../../../../../core/services/uncertainty/types';
 import {NgbModalRef} from '@ng-bootstrap/ng-bootstrap/modal/modal-ref';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {UncertaintyService} from '../../../../../core/services/uncertainty/uncertainty.service';
@@ -67,9 +66,9 @@ export class RoundCompleteModalComponent implements AfterViewInit, OnChanges {
 
   private onOptionUpdate(change?: SimpleChange) {
     const before: UncertaintyOption = change?.previousValue;
-    if ((!before?.active?.roundComplete || before?.name !== this.option.name) && this.option.active?.roundComplete) {
+    if ((!before?.active?.roundComplete || before?.name !== this.option.name) && this.option?.active?.roundComplete) {
       this.open();
-    } else if (before?.active?.roundComplete && !this.option.active?.roundComplete) {
+    } else if (before?.active?.roundComplete && !this.option?.active?.roundComplete) {
       this.modalRef?.close(true); // doesn't trigger (closed)
     }
   }

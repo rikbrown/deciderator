@@ -27,7 +27,7 @@ export class HumanizeDurationPipe implements PipeTransform {
   }
 
   transform(value: number): string {
-    value = +(value / 1000).toFixed(2) * 1000;
+    value = +(value).toFixed(2) * 1000;
     return this.humanizer.humanize(+value, {
       language: 'shortEn'
     });

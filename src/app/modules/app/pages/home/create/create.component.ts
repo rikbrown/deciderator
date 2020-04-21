@@ -1,8 +1,8 @@
 import {AfterViewInit, Component, Directive, ElementRef, TemplateRef, ViewChild, ViewChildren} from '@angular/core';
 import {NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
-import {Uncertainty, UncertaintyOption} from '../../../../../core/services/uncertainty/types';
 import {UncertaintyService} from '../../../../../core/services/uncertainty/uncertainty.service';
 import {Router} from '@angular/router';
+import {NewUncertainty} from '../../../../../core/services/uncertainty/types';
 
 @Component({
   selector: 'app-create',
@@ -10,14 +10,14 @@ import {Router} from '@angular/router';
   styleUrls: ['./create.component.scss'],
 })
 export class CreateComponent {
-  uncertainty: Uncertainty = null;
+  uncertainty: NewUncertainty = null;
   submitted = false;
   failure?: string = null;
 
-  @ViewChild('content') private contentTmpl: TemplateRef<any>;
-  private modalRef: NgbModalRef;
-
   @ViewChild('optionElement') someInput: ElementRef;
+  @ViewChild('content') private contentTmpl: TemplateRef<any>;
+
+  private modalRef: NgbModalRef;
 
   constructor(
     private uncertaintyService: UncertaintyService,
@@ -27,8 +27,8 @@ export class CreateComponent {
 
   get filteredOptions(): Array<string> {
     return this.uncertainty.options
-      .filter((o) => o.name.trim().length > 0)
       .map((o) => o.name)
+      .filter((o) => o.trim().length > 0)
       .filter((o, i, self) => self.indexOf(o) === i);
   }
 
@@ -38,13 +38,8 @@ export class CreateComponent {
 
   open(): void {
     this.uncertainty = {
-      id: null,
-      rules: null,
       name: '',
-      options: [
-        { name: '' },
-        { name: '' },
-      ]
+      options: [{ name: '' }, { name: '' }],
     };
 
     this.modalRef = this.modalService.open(this.contentTmpl, {
@@ -60,8 +55,8 @@ export class CreateComponent {
     this.failure = null;
     this.submitted = true;
     this.uncertaintyService.createUncertainty(this.uncertainty).subscribe(
-      (uncertainty) => {
-        this.router.navigate(['/uncertainty', uncertainty.id]).then(() => this.modalRef?.close());
+      (uncertaintyId) => {
+        this.router.navigate(['/uncertainty', uncertaintyId]).then(() => this.modalRef?.close());
       },
       (err) => {
         this.submitted = false;
