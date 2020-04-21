@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
+import {DecideratorSocketService} from '../deciderator-socket/deciderator-socket.service';
+import {filter, map} from 'rxjs/operators';
 
 @Injectable()
 export abstract class CoinService {
@@ -39,18 +41,21 @@ export class CoinMockService extends CoinService {
   }
 }
 
-export interface CoinState {
-  interactive: boolean;
-  rotateDelta?: {
-    x: number,
-    y: number,
-  };
-  rotationSpeed: number;
-  drag: number;
-  quaternion?: {
-    w: number,
-    x: number,
-    y: number,
-    z: number,
-  };
+@Injectable()
+export class DecideratorCoinService extends CoinService {
+  constructor(private decideratorSocketService: DecideratorSocketService) {
+    super();
+  }
+
+  observeCoinState(uncertaintyId: string): Observable<CoinState> {
+    return this.decideratorSocketService.coinStateMessageSubject
+      .pipe(filter(msg => msg.uncertaintyId === uncertaintyId))
+      .pipe(map(msg => msg.coinState));
+  }
+
+  updateCoinState(uncertaintyId: string, coinState: CoinState): void {
+    const request: UpdateCoinStateRequest = { uncertaintyId, coinState };
+    this.decideratorSocketService.send('UpdateCoinStateRequest', request);
+  }
+
 }

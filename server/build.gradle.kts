@@ -23,6 +23,8 @@ dependencies {
   implementation("com.fasterxml.jackson.datatype", "jackson-datatype-jsr310", "2.10.+")
   implementation("org.apache.commons", "commons-lang3", "3.10")
   implementation("com.github.ntrrgc", "ts-generator", "1.1.1")
+  implementation("io.reactivex.rxjava3", "rxkotlin", "3.0.0")
+
 
   testImplementation("junit", "junit", "4.12")
 }

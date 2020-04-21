@@ -1,4 +1,5 @@
 <app-round-complete-modal *ngIf="uncertainty" [option]="activeOption" [uncertaintyId]="uncertainty.id"></app-round-complete-modal>
+<app-set-username-modal></app-set-username-modal>
 
 <div class="d-flex h-100 flex-column">
   <nav class="navbar navbar-expand-md navbar-dark bg-dark">
@@ -12,7 +13,7 @@
 
       <span *ngFor="let user of onlineUsers">&nbsp;
         <span class="navbar-text">
-            <span class="badge badge-info" [ngClass]="{ 'badge-primary': user.self, 'badge-info': !user.self }">{{user.username}}</span>
+            <a [routerLink]="" (click)="setUsernameModal.open()" class="badge badge-info" [ngClass]="{ 'badge-primary': user.self, 'badge-info': !user.self }">{{user.username}}</a>
         </span>
       </span>
     </div>
@@ -61,7 +62,9 @@
       <div class="card">
         <div class="card-body">
           <app-coin
+            *ngIf="coinState"
             [state]="coinState"
+            [uncertaintyId]="uncertainty?.id"
             style="{{activeOption.active.coinStyle}}"
             (contextmenu)="changeCoinStyle($event);">
           </app-coin>

@@ -3,7 +3,7 @@ import {NgModule} from '@angular/core';
 
 import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
-import {CoinMockService, CoinService} from '../../core/services/coin/coin.service';
+import {CoinMockService, CoinService, DecideratorCoinService} from '../../core/services/coin/coin.service';
 import {UncertaintyModule} from './pages/uncertainty/uncertainty.module';
 import {CommonModule} from '@angular/common';
 import {SharedModule} from '../shared.module';
@@ -26,7 +26,7 @@ import {DecideratorUncertaintyService, UncertaintyService} from '../../core/serv
   ],
   providers: [
     { provide: UncertaintyService, useClass: DecideratorUncertaintyService },
-    { provide: CoinService, useClass: CoinMockService },
+    { provide: CoinService, useClass: DecideratorCoinService },
   ],
   bootstrap: [AppComponent]
 })

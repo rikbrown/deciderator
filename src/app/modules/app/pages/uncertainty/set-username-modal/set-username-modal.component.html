@@ -1,0 +1,35 @@
+<ng-template #content let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Identify Yourself</h4>
+<!--    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">-->
+<!--      <span aria-hidden="true">&times;</span>-->
+<!--    </button>-->
+  </div>
+  <form #usernameForm="ngForm" (ngSubmit)="onSubmit()">
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="username">What is your name, soldier?</label>
+        <div class="input-group">
+          <input
+            [(ngModel)]="username"
+            #usernameField="ngModel"
+            ngbAutofocus
+            id="username"
+            name="uncertainty-id"
+            class="form-control"
+            placeholder="(e.g. Joe)"
+            required>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button
+        [disabled]="usernameForm.invalid"
+        type="submit"
+        class="btn btn-primary"
+      >
+        Sir, yes sir!
+      </button>
+    </div>
+  </form>
+</ng-template>

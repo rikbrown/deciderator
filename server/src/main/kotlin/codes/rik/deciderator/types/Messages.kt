@@ -1,5 +1,6 @@
 package codes.rik.deciderator.types
 
+import codes.rik.deciderator.CoinState
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 
 object Messages {
@@ -15,6 +16,7 @@ object Messages {
   data class LeaveUncertaintyRequest(val uncertaintyId: UncertaintyId) : UncertaintyRequest
   data class GetUncertaintyRequest(val uncertaintyId: UncertaintyId) : UncertaintyRequest
   data class SetUsernameRequest(val username: String) : UncertaintyRequest
+  data class UpdateCoinStateRequest(val uncertaintyId: UncertaintyId, val coinState: CoinState): UncertaintyRequest
 
   @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
   interface UncertaintyMessage
@@ -36,5 +38,10 @@ object Messages {
 
   data class UncertaintyDetailsMessage(
     val uncertainty: Uncertainty
+  ) : UncertaintyMessage
+
+  data class CoinStateMessage(
+    val uncertaintyId: UncertaintyId,
+    val coinState: CoinState
   ) : UncertaintyMessage
 }

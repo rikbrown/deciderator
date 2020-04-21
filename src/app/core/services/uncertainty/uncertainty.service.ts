@@ -73,6 +73,8 @@ export class DecideratorUncertaintyService implements UncertaintyService {
     const request: LeaveUncertaintyRequest = {uncertaintyId: id};
     this.decideratorSocketService.send('LeaveUncertaintyRequest', request);
   }
+
+
 }
 
 export interface UncertaintyUser {

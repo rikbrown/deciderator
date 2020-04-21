@@ -13,8 +13,8 @@ import {
 import * as THREE from 'three';
 import {BufferGeometry, Material, MathUtils, Texture} from 'three';
 import {CoinRotation} from './coinRotation';
-import {CoinState} from '../core/services/coin/coin.service';
 import {Observable} from 'rxjs';
+import {CoinService} from '../core/services/coin/coin.service';
 
 @Component({
   selector: 'app-coin',
@@ -25,6 +25,7 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestro
   private static readonly FRAME_RATE = 60;
   private static readonly FLIP_TRIGGER_DELTA = 30;
 
+  @Input('uncertaintyId') private uncertaintyId: string;
   @Input('style') private coinStyle: string;
   @Input('state') private coinState: CoinState;
   @ViewChild('rendererContainer') private rendererContainer: ElementRef;
@@ -40,6 +41,9 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestro
   private tailTexture: THREE.Texture = null;
   private rotation: CoinRotation = null;
   private interval = null;
+
+  constructor(
+    private coinService: CoinService) { }
 
   ngOnInit(): void {
     this.object = CoinComponent.initObject(this.coinStyle);
@@ -103,6 +107,9 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestro
 
     console.log('quarternion:', this.object.quaternion);
     console.log('delta:', deltaX, deltaY);
+
+    this.coinService.updateCoinState(this.uncertaintyId, this.rotation.toCoinState());
+
     if (Math.abs(deltaX) > CoinComponent.FLIP_TRIGGER_DELTA || Math.abs(deltaY) > CoinComponent.FLIP_TRIGGER_DELTA) {
       this.flip();
     }

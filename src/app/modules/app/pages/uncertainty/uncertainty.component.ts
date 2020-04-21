@@ -16,6 +16,8 @@ import {UncertaintyService, UncertaintyUser} from '../../../../core/services/unc
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {OnDestroyMixin, untilComponentDestroyed} from '@w11k/ngx-componentdestroyed';
 import {ActivatedRoute} from '@angular/router';
+import {SetUsernameModalComponent} from './set-username-modal/set-username-modal.component';
+import {UsernameService} from '../../../../core/services/username/username.service';
 
 @Component({
   selector: 'app-uncertainty',
@@ -27,7 +29,7 @@ export class UncertaintyComponent extends OnDestroyMixin implements OnInit, OnDe
 
   constructor(
     private route: ActivatedRoute,
-    private service: UncertaintyService
+    private service: UncertaintyService,
   ) {
     super();
   }
@@ -71,13 +73,13 @@ export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit,
 
   @Input() uncertainty: Uncertainty = null;
   @Input() onlineUsers: UncertaintyUser[] = [];
+  @ViewChild(SetUsernameModalComponent) setUsernameModal: SetUsernameModalComponent;
 
   @ViewChild(RoundCompleteModalComponent) private roundCompleteModal: RoundCompleteModalComponent;
   @ViewChild(CoinComponent) private coinComponent: CoinComponent;
 
   constructor(
-    private coinService: CoinService,
-    private uncertaintyService: UncertaintyService) {
+    private coinService: CoinService) {
     super();
   }
 
@@ -100,6 +102,7 @@ export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit,
   }
 
   ngAfterViewInit(): void {
+    this.setUsernameModal.openIfNeeded();
   }
 
   ngOnChanges(changes: SimpleChanges): void {

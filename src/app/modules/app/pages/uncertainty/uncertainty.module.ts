@@ -8,6 +8,8 @@ import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import {CommonModule} from '@angular/common';
 import {SharedModule} from '../../../shared.module';
 import {RouterModule} from '@angular/router';
+import { SetUsernameModalComponent } from './set-username-modal/set-username-modal.component';
+import {FormsModule} from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -16,10 +18,12 @@ import {RouterModule} from '@angular/router';
     CoinComponent,
     ResultsColComponent,
     RoundCompleteModalComponent,
+    SetUsernameModalComponent,
   ],
   imports: [
     SharedModule,
     RouterModule,
+    FormsModule,
   ]
 })
 

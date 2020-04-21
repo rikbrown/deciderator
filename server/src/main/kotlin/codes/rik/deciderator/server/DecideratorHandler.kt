@@ -1,8 +1,10 @@
 package codes.rik.deciderator.server
 
+import codes.rik.deciderator.CoinManager
 import codes.rik.deciderator.UncertaintyManager
 import codes.rik.deciderator.types.Messages
 import codes.rik.deciderator.types.Messages.ActiveSessionsMessage
+import codes.rik.deciderator.types.Messages.CoinStateMessage
 import codes.rik.deciderator.types.Messages.CreateUncertaintyRequest
 import codes.rik.deciderator.types.Messages.GetUncertaintyRequest
 import codes.rik.deciderator.types.Messages.JoinUncertaintyRequest
@@ -13,6 +15,7 @@ import codes.rik.deciderator.types.Messages.UncertaintyDetailsMessage
 import codes.rik.deciderator.types.Messages.UncertaintyJoinedMessage
 import codes.rik.deciderator.types.Messages.UncertaintyRequest
 import codes.rik.deciderator.types.Messages.UncertaintyUsersMessage
+import codes.rik.deciderator.types.Messages.UpdateCoinStateRequest
 import codes.rik.deciderator.types.SessionId
 import codes.rik.deciderator.types.UncertaintyId
 import codes.rik.deciderator.types.Username
@@ -25,8 +28,8 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
 object DecideratorHandler : TextWebSocketHandler() {
-  private val sessions: ConcurrentMap<SessionId, WebSocketSession> = ConcurrentHashMap()
-  private val sessionUncertainty: ConcurrentMap<SessionId, UncertaintyId> = ConcurrentHashMap()
+  val sessions: ConcurrentMap<SessionId, WebSocketSession> = ConcurrentHashMap()
+  val sessionUncertainty: ConcurrentMap<SessionId, UncertaintyId> = ConcurrentHashMap()
 
   override fun afterConnectionEstablished(session: WebSocketSession) {
     sessions[session.sessionId] = session
@@ -36,7 +39,7 @@ object DecideratorHandler : TextWebSocketHandler() {
   override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
     sessions.remove(session.sessionId)
     announceActiveSessions()
-    sessionUncertainty[session.sessionId]?.let { announceUncertaintyUsers(it, session) }
+    sessionUncertainty[session.sessionId]?.let { announceUncertaintyUsers(it) }
   }
 
   override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
@@ -47,12 +50,13 @@ object DecideratorHandler : TextWebSocketHandler() {
       is GetUncertaintyRequest -> getUncertainty(session, msg)
       is SetUsernameRequest -> setUsername(session, msg)
       is LeaveUncertaintyRequest -> leaveUncertainty(session, msg)
+      is UpdateCoinStateRequest -> updateCoinState(msg, session)
     }
   }
 
   private fun setUsername(session: WebSocketSession, msg: SetUsernameRequest) {
     session.username = Username(msg.username);
-    sessionUncertainty[session.sessionId]?.let { announceUncertaintyUsers(it, session) }
+    sessionUncertainty[session.sessionId]?.let { announceUncertaintyUsers(it) }
   }
 
   private fun createUncertainty(session: WebSocketSession, msg: CreateUncertaintyRequest) {
@@ -77,10 +81,11 @@ object DecideratorHandler : TextWebSocketHandler() {
 //    session.username = Username(msg.username)
     sessionUncertainty[session.sessionId] = msg.uncertaintyId
     session.sendMessage(UncertaintyJoinedMessage(UncertaintyManager.get(msg.uncertaintyId)!!)) // FIXME
+    session.sendMessage(CoinStateMessage(msg.uncertaintyId, CoinManager.get(msg.uncertaintyId)))
 
     // Notify users. If we left an old uncertainty, notify that too.
-    announceUncertaintyUsers(msg.uncertaintyId, session)
-    if (oldUncertaintyId != null) announceUncertaintyUsers(oldUncertaintyId, session)
+    announceUncertaintyUsers(msg.uncertaintyId)
+    if (oldUncertaintyId != null) announceUncertaintyUsers(oldUncertaintyId)
   }
 
   private fun leaveUncertainty(session: WebSocketSession, msg: LeaveUncertaintyRequest) {
@@ -88,13 +93,14 @@ object DecideratorHandler : TextWebSocketHandler() {
       ?.takeIf { it == msg.uncertaintyId }
       ?.let { uncertaintyId ->
         sessionUncertainty.remove(session.sessionId)
-        announceUncertaintyUsers(uncertaintyId, session)
+        announceUncertaintyUsers(uncertaintyId)
       }
   }
 
   private fun getUncertainty(session: WebSocketSession, msg: GetUncertaintyRequest) {
     val uncertainty = UncertaintyManager.get(msg.uncertaintyId) ?: throw RuntimeException("FIXME")
     session.sendMessage(UncertaintyDetailsMessage(uncertainty))
+    session.sendMessage(CoinStateMessage(msg.uncertaintyId, CoinManager.get(msg.uncertaintyId)))
 //    announceUncertaintyUsers(msg.uncertaintyId) // also announce users
   }
 
@@ -109,7 +115,7 @@ object DecideratorHandler : TextWebSocketHandler() {
     }
   }
 
-  private fun announceUncertaintyUsers(uncertaintyId: UncertaintyId, activeSession: WebSocketSession) {
+  private fun announceUncertaintyUsers(uncertaintyId: UncertaintyId) {
     val sessions = sessionUncertainty
       .filter { (_, sessionUncertaintyId) -> sessionUncertaintyId == uncertaintyId}
       .mapNotNull { (sessionId, _) -> sessions[sessionId] }

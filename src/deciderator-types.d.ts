@@ -6,6 +6,31 @@ interface ActiveSessionsMessage extends UncertaintyMessage {
   sessionId: string;
 }
 
+interface Quaternion {
+  w: number;
+  x: number;
+  y: number;
+  z: number;
+}
+
+interface DeltaXY {
+  x: number;
+  y: number;
+}
+
+interface CoinState {
+  drag: number;
+  interactive: boolean;
+  quaternion: Quaternion;
+  rotateDelta: DeltaXY;
+  rotationSpeed: number;
+}
+
+interface CoinStateMessage extends UncertaintyMessage {
+  coinState: CoinState;
+  uncertaintyId: string;
+}
+
 interface UncertaintyRequest {
 }
 
@@ -86,3 +111,7 @@ interface UncertaintyUsersMessage extends UncertaintyMessage {
   users: string[];
 }
 
+interface UpdateCoinStateRequest extends UncertaintyRequest {
+  coinState: CoinState;
+  uncertaintyId: string;
+}

@@ -2,7 +2,6 @@ import {ElementRef, HostListener} from '@angular/core';
 import * as THREE from 'three';
 import {MathUtils} from 'three';
 import clamp = MathUtils.clamp;
-import {CoinState} from '../core/services/coin/coin.service';
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
 
 export class CoinRotation {
@@ -187,7 +186,7 @@ export class CoinRotation {
     return quaternion;
   }
 
-  private toCoinState(): CoinState {
+  toCoinState(): CoinState {
     return {
       interactive: true, // FIXME
       rotateDelta: {
