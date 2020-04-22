@@ -32,7 +32,7 @@ export class DecideratorSocketService {
     };
   }
 
-  public send(type: string, request: UncertaintyRequest) {
+  public send(type: string, request: DecideratorRequest) {
     request['@class'] = 'codes.rik.deciderator.types.Messages$' + type;
     console.info('send', type, request);
     this.openPromise.subscribe(() => this.socket.send(JSON.stringify(request)));

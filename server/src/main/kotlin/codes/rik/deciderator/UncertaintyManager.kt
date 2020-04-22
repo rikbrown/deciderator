@@ -7,6 +7,7 @@ import codes.rik.deciderator.types.Uncertainty
 import codes.rik.deciderator.types.UncertaintyId
 import codes.rik.deciderator.types.UncertaintyOption
 import codes.rik.deciderator.types.UncertaintyRules
+import codes.rik.deciderator.types.Username
 import org.apache.commons.lang3.RandomStringUtils
 import java.lang.RuntimeException
 import java.time.Duration
@@ -31,21 +32,21 @@ object UncertaintyManager {
               FlipResult(
                 result = CoinFace.HEADS,
                 coinStyle = "germany",
-                flippedBy = "Rik",
+                flippedBy = Username("Rik"),
                 waitTime = Duration.ofMillis(1234),
                 flipTime = Duration.ofMillis(4567)
               ),
               FlipResult(
                 result = CoinFace.HEADS,
                 coinStyle = "germany",
-                flippedBy = "Mark",
+                flippedBy = Username("Mark"),
                 waitTime = Duration.ofMillis(2345),
                 flipTime = Duration.ofMillis(7655)
               ),
               FlipResult(
                 result = CoinFace.TAILS,
                 coinStyle = "germany",
-                flippedBy = "Mark",
+                flippedBy = Username("Mark"),
                 waitTime = Duration.ofMillis(23112),
                 flipTime = Duration.ofMillis(5342)
               ),
@@ -90,6 +91,22 @@ object UncertaintyManager {
           if (it.active != null) {
             it.copy(active = it.active.copy(
               coinStyle = style
+            ))
+          } else {
+            it
+          }
+        }
+    )
+  }
+
+  fun addResult(uncertaintyId: UncertaintyId, result: FlipResult) {
+    val uncertainty = uncertainties[uncertaintyId] ?: throw RuntimeException("Unknown uncertainty: $uncertaintyId")
+    uncertainties[uncertaintyId] = uncertainty.copy(
+      options = uncertainty.options
+        .map {
+          if (it.active != null) {
+            it.copy(active = it.active.copy(
+              results = it.active.results + result
             ))
           } else {
             it

@@ -1,5 +1,6 @@
 package codes.rik.deciderator.types
 
+import java.lang.IllegalStateException
 import java.time.Duration
 
 data class Uncertainty(
@@ -29,7 +30,7 @@ data class ActiveOptionProperties(
 data class FlipResult(
   val result: CoinFace,
   val coinStyle: String,
-  val flippedBy: String,
+  val flippedBy: Username,
   val waitTime: Duration,
   val flipTime: Duration
 )
@@ -37,3 +38,5 @@ data class FlipResult(
 enum class CoinFace {
   HEADS, TAILS
 }
+
+val Uncertainty.activeOption get() = options.find { it.active != null }?.active ?: throw IllegalStateException()

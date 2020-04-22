@@ -3,7 +3,7 @@ import {NgModule} from '@angular/core';
 
 import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
-import {CoinMockService, CoinService, DecideratorCoinService} from '../../core/services/coin/coin.service';
+import {CoinService, DecideratorCoinService} from '../../core/services/coin/coin.service';
 import {UncertaintyModule} from './pages/uncertainty/uncertainty.module';
 import {CommonModule} from '@angular/common';
 import {SharedModule} from '../shared.module';

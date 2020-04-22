@@ -112,7 +112,13 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestro
   }
 
   flip() {
-    console.log('FLIP FLIP');
+    console.info('FLIP FLIP');
+    this.coinService.flipCoin(this.uncertaintyId);
+
+    // const newCoinState = this.rotation.toCoinState();
+    // newCoinState.drag = 1.0;
+    // newCoinState.interactive = false;
+    // this.rotation.updateCoinState(newCoinState);
   }
 
   private updateCoinStyle(): void {

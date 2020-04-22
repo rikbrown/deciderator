@@ -21,7 +21,7 @@ interface DeltaXY {
 interface CoinState {
   drag: number;
   interactive: boolean;
-  quaternion: Quaternion;
+  quaternion: Quaternion | null;
   rotateDelta: DeltaXY;
   rotationSpeed: number;
 }
@@ -31,27 +31,31 @@ interface CoinStateMessage extends UncertaintyMessage {
   uncertaintyId: string;
 }
 
-interface UncertaintyRequest {
+interface DecideratorRequest {
 }
 
-interface CreateUncertaintyRequest extends UncertaintyRequest {
+interface CreateUncertaintyRequest extends DecideratorRequest {
   name: string;
   options: string[];
 }
 
-interface GetUncertaintyRequest extends UncertaintyRequest {
+interface FlipCoinRequest extends DecideratorRequest {
   uncertaintyId: string;
 }
 
-interface JoinUncertaintyRequest extends UncertaintyRequest {
+interface GetUncertaintyRequest extends DecideratorRequest {
   uncertaintyId: string;
 }
 
-interface LeaveUncertaintyRequest extends UncertaintyRequest {
+interface JoinUncertaintyRequest extends DecideratorRequest {
   uncertaintyId: string;
 }
 
-interface SetUsernameRequest extends UncertaintyRequest {
+interface LeaveUncertaintyRequest extends DecideratorRequest {
+  uncertaintyId: string;
+}
+
+interface SetUsernameRequest extends DecideratorRequest {
   username: string;
 }
 
@@ -111,12 +115,13 @@ interface UncertaintyUsersMessage extends UncertaintyMessage {
   users: string[];
 }
 
-interface UpdateCoinStateRequest extends UncertaintyRequest {
+interface UpdateCoinStateRequest extends DecideratorRequest {
   coinState: CoinState;
   uncertaintyId: string;
 }
 
-interface UpdateCoinStyleRequest extends UncertaintyRequest {
+interface UpdateCoinStyleRequest extends DecideratorRequest {
   coinStyle: string;
   uncertaintyId: string;
 }
+

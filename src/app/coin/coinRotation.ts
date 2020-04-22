@@ -188,7 +188,7 @@ export class CoinRotation {
 
   toCoinState(): CoinState {
     return {
-      interactive: true, // FIXME
+      interactive: this.interactive,
       rotateDelta: {
         x: this.deltaX,
         y: this.deltaY,

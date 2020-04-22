@@ -16,6 +16,7 @@ repositories {
 dependencies {
   implementation(kotlin("stdlib-jdk8"))
   implementation(kotlin("reflect"))
+  implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.3.5")
 
   implementation("org.springframework.boot", "spring-boot-starter-websocket", "2.2.6.RELEASE")
   implementation("com.fasterxml.jackson.module", "jackson-module-kotlin", "2.10.+")

@@ -69,7 +69,7 @@ export class UncertaintyComponent extends OnDestroyMixin implements OnInit, OnDe
 })
 export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit, AfterViewInit, OnChanges {
   availableCoinStyles = ['germany', 'eu_germany', 'usa', 'usa_trump'];
-  coinState = null;
+  coinState: CoinState = null;
 
   @Input() uncertainty: Uncertainty = null;
   @Input() onlineUsers: UncertaintyUser[] = [];
@@ -117,6 +117,10 @@ export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit,
 
   changeCoinStyle(event: Event): void {
     event.preventDefault();
+
+    if (!this.coinState.interactive) {
+      return;
+    }
 
     const nextCoinIndex = (this.availableCoinStyles.indexOf(this.activeOption.active.coinStyle) + 1) % this.availableCoinStyles.length;
     this.activeOption.active.coinStyle = this.availableCoinStyles[nextCoinIndex];

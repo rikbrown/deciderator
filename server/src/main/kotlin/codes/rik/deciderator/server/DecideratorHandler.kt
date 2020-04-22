@@ -13,9 +13,11 @@ import codes.rik.deciderator.types.Messages.SetUsernameRequest
 import codes.rik.deciderator.types.Messages.UncertaintyCreatedMessage
 import codes.rik.deciderator.types.Messages.UncertaintyDetailsMessage
 import codes.rik.deciderator.types.Messages.UncertaintyJoinedMessage
-import codes.rik.deciderator.types.Messages.UncertaintyRequest
+import codes.rik.deciderator.types.Messages.DecideratorRequest
+import codes.rik.deciderator.types.Messages.FlipCoinRequest
 import codes.rik.deciderator.types.Messages.UncertaintyUsersMessage
 import codes.rik.deciderator.types.Messages.UpdateCoinStateRequest
+import codes.rik.deciderator.types.Messages.UpdateCoinStyleRequest
 import codes.rik.deciderator.types.SessionId
 import codes.rik.deciderator.types.UncertaintyId
 import codes.rik.deciderator.types.Username
@@ -44,14 +46,15 @@ object DecideratorHandler : TextWebSocketHandler() {
 
   override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
     println(message.payload)
-    when (val msg = objectMapper.readValue<UncertaintyRequest>(message.payload)) {
+    when (val msg = objectMapper.readValue<DecideratorRequest>(message.payload)) {
       is CreateUncertaintyRequest -> createUncertainty(session, msg)
       is JoinUncertaintyRequest -> joinUncertainty(session, msg)
       is GetUncertaintyRequest -> getUncertainty(session, msg)
       is SetUsernameRequest -> setUsername(session, msg)
       is LeaveUncertaintyRequest -> leaveUncertainty(session, msg)
       is UpdateCoinStateRequest -> updateCoinState(msg, session)
-      is Messages.UpdateCoinStyleRequest -> updateCoinStyle(msg, session)
+      is UpdateCoinStyleRequest -> updateCoinStyle(msg, session)
+      is FlipCoinRequest -> flipCoin(msg, session)
     }
   }
 
