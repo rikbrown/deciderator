@@ -10,6 +10,7 @@ import {SharedModule} from '../../../shared.module';
 import {RouterModule} from '@angular/router';
 import { SetUsernameModalComponent } from './set-username-modal/set-username-modal.component';
 import {FormsModule} from '@angular/forms';
+import { WinnerModalComponent } from './winner-modal/winner-modal.component';
 
 @NgModule({
   declarations: [
@@ -19,6 +20,7 @@ import {FormsModule} from '@angular/forms';
     ResultsColComponent,
     RoundCompleteModalComponent,
     SetUsernameModalComponent,
+    WinnerModalComponent,
   ],
   imports: [
     SharedModule,

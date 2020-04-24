@@ -19,6 +19,7 @@ object Messages {
   data class UpdateCoinStyleRequest(val uncertaintyId: UncertaintyId, val coinStyle: String) : DecideratorRequest
   data class UpdateCoinStateRequest(val uncertaintyId: UncertaintyId, val coinState: CoinState) : DecideratorRequest
   data class FlipCoinRequest(val uncertaintyId: UncertaintyId) : DecideratorRequest
+  data class NextRoundRequest(val uncertaintyId: UncertaintyId): DecideratorRequest
 
   @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
   interface UncertaintyMessage

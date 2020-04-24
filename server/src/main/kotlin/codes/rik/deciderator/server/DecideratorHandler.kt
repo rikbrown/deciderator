@@ -15,6 +15,7 @@ import codes.rik.deciderator.types.Messages.UncertaintyDetailsMessage
 import codes.rik.deciderator.types.Messages.UncertaintyJoinedMessage
 import codes.rik.deciderator.types.Messages.DecideratorRequest
 import codes.rik.deciderator.types.Messages.FlipCoinRequest
+import codes.rik.deciderator.types.Messages.NextRoundRequest
 import codes.rik.deciderator.types.Messages.UncertaintyUsersMessage
 import codes.rik.deciderator.types.Messages.UpdateCoinStateRequest
 import codes.rik.deciderator.types.Messages.UpdateCoinStyleRequest
@@ -55,6 +56,7 @@ object DecideratorHandler : TextWebSocketHandler() {
       is UpdateCoinStateRequest -> updateCoinState(msg, session)
       is UpdateCoinStyleRequest -> updateCoinStyle(msg, session)
       is FlipCoinRequest -> flipCoin(msg, session)
+      is NextRoundRequest -> nextRound(session, msg)
     }
   }
 
@@ -92,7 +94,7 @@ object DecideratorHandler : TextWebSocketHandler() {
     // Join this uncertainty
 //    session.username = Username(msg.username)
     sessionUncertainty[session.sessionId] = msg.uncertaintyId
-    session.sendMessage(UncertaintyJoinedMessage(UncertaintyManager.get(msg.uncertaintyId)!!)) // FIXME
+    session.sendMessage(UncertaintyJoinedMessage(UncertaintyManager.get(msg.uncertaintyId)))
     session.sendMessage(CoinStateMessage(msg.uncertaintyId, CoinManager.get(msg.uncertaintyId)))
 
     // Notify users. If we left an old uncertainty, notify that too.
@@ -110,10 +112,16 @@ object DecideratorHandler : TextWebSocketHandler() {
   }
 
   private fun getUncertainty(session: WebSocketSession, msg: GetUncertaintyRequest) {
-    val uncertainty = UncertaintyManager.get(msg.uncertaintyId) ?: throw RuntimeException("FIXME")
+    val uncertainty = UncertaintyManager.get(msg.uncertaintyId)
     session.sendMessage(UncertaintyDetailsMessage(uncertainty))
     session.sendMessage(CoinStateMessage(msg.uncertaintyId, CoinManager.get(msg.uncertaintyId)))
 //    announceUncertaintyUsers(msg.uncertaintyId) // also announce users
+  }
+
+  private fun nextRound(session: WebSocketSession, msg: NextRoundRequest) {
+    UncertaintyManager.nextRound(msg.uncertaintyId)
+    getUncertaintySessions(msg.uncertaintyId)
+      .forEach { it.sendMessage(UncertaintyDetailsMessage(UncertaintyManager.get(msg.uncertaintyId))) }
   }
 
   private fun announceActiveSessions() {

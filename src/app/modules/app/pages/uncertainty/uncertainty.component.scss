@@ -103,6 +103,20 @@ footer.options-footer {
         }
       }
 
+      &.winner {
+        opacity: 1.0 !important;
+
+        svg.winner {
+          display: inline;
+          color: $success;
+        }
+
+        .card {
+          background-color: $success;
+          color: $white;
+        }
+      }
+
       &.eliminated {
         opacity: 0.3;
 

@@ -30,11 +30,6 @@ export class HomeComponent extends OnDestroyMixin implements OnInit, AfterViewIn
         this.sessionId = msg?.sessionId;
         this.onlineSessionIds = msg?.onlineSessionIds ?? [];
       });
-    // this.decideratorClient.initSocket();
-    // this.decideratorClient.onEvent(Event.CONNECT)
-    //   .subscribe(() => {
-    //     console.log('connected');
-    //   });
   }
 
   ngAfterViewInit(): void {

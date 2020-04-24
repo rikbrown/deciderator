@@ -37,12 +37,9 @@ export class RoundCompleteModalComponent implements AfterViewInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    for (const [propName, change] of Object.entries(changes)) {
-      if (propName === 'option') {
-        if (change.previousValue != null) { // first onchange fires before view initialised, so ignore it - we'll call in ngAfterViewInit
-          this.onOptionUpdate(change);
-        }
-      }
+    if (changes.option && changes.option.previousValue != null) {
+      // check previous value because first onchange fires before view initialised, so ignore it - we'll call in ngAfterViewInit
+      this.onOptionUpdate(changes.option);
     }
   }
 

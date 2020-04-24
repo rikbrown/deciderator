@@ -11,7 +11,7 @@ export abstract class UncertaintyService {
   abstract joinUncertainty(id: string): Observable<Uncertainty>;
   abstract observeUncertaintyUsers(uncertaintyId: string): Observable<UncertaintyUser[]>;
   abstract nextRound(uncertaintyId: string): void;
-  abstract leaveUncertainty(id: string): void;
+  abstract leaveUncertainty(uncertaintyId: string): void;
 }
 
 @Injectable()
@@ -64,13 +64,13 @@ export class DecideratorUncertaintyService implements UncertaintyService {
       })));
   }
 
-
-
   nextRound(uncertaintyId: string): void {
+    const request: NextRoundRequest = { uncertaintyId };
+    this.decideratorSocketService.send('NextRoundRequest', request);
   }
 
-  leaveUncertainty(id: string): void {
-    const request: LeaveUncertaintyRequest = {uncertaintyId: id};
+  leaveUncertainty(uncertaintyId: string): void {
+    const request: LeaveUncertaintyRequest = { uncertaintyId };
     this.decideratorSocketService.send('LeaveUncertaintyRequest', request);
   }
 

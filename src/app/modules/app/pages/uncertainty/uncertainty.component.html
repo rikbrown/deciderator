@@ -1,5 +1,5 @@
-<app-round-complete-modal *ngIf="uncertainty" [option]="activeOption" [uncertaintyId]="uncertainty.id"></app-round-complete-modal>
-<app-set-username-modal></app-set-username-modal>
+<app-round-complete-modal *ngIf="uncertainty && !winner" [option]="activeOption" [uncertaintyId]="uncertainty.id"></app-round-complete-modal>
+<app-set-username-modal *ngIf="!winner"></app-set-username-modal>
 
 <div class="d-flex h-100 flex-column">
   <nav class="navbar navbar-expand-md navbar-dark bg-dark">
@@ -48,8 +48,11 @@
     </div>
   </nav>
 
+  <main id="main-winner" role="main" class="row flex-fill d-flex justify-content-start" *ngIf="uncertainty && winner" [attr.data-round-name]="winner">
+    winner winner
+  </main>
 
-  <main role="main" class="row flex-fill d-flex justify-content-start" *ngIf="uncertainty" [attr.data-round-name]="activeOption.name">
+  <main id="main-no-winner" role="main" class="row flex-fill d-flex justify-content-start" *ngIf="uncertainty && !winner" [attr.data-round-name]="activeOption.name">
     <div class="col col-3 results-col">
       <app-results-col
         face="Heads"
@@ -65,7 +68,7 @@
             *ngIf="coinState"
             [state]="coinState"
             [uncertaintyId]="uncertainty?.id"
-            style="{{activeOption.active.coinStyle}}"
+            style="{{activeOption.coinStyle}}"
             (contextmenu)="changeCoinStyle($event);">
           </app-coin>
 
@@ -85,7 +88,7 @@
   <footer class="options-footer row border border-700" *ngIf="uncertainty">
     <div class="col">
       <div class="row options-list">
-        <div class="col" [ngClass]="{'active': option.active, 'eliminated': option.eliminated}" *ngFor="let option of uncertainty.options">
+        <div class="col" [ngClass]="{'winner': winner == option.name, 'active': (option.active && !winner), 'eliminated': option.eliminated}" *ngFor="let option of uncertainty.options">
 
           <div class="svg-container">
             <svg class="bi bi-caret-down-fill active" width="48px" height="48px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -93,6 +96,10 @@
             </svg>
             <svg class="bi bi-x-square-fill eliminated" width="38px" height="38px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
               <path fill-rule="evenodd" d="M2 0a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V2a2 2 0 00-2-2H2zm9.854 4.854a.5.5 0 00-.708-.708L8 7.293 4.854 4.146a.5.5 0 10-.708.708L7.293 8l-3.147 3.146a.5.5 0 00.708.708L8 8.707l3.146 3.147a.5.5 0 00.708-.708L8.707 8l3.147-3.146z" clip-rule="evenodd"/>
+            </svg>
+            <svg class="bi bi-x-square-fill winner" width="38px" height="38px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 0l1.669.864 1.858.282.842 1.68 1.337 1.32L13.4 6l.306 1.854-1.337 1.32-.842 1.68-1.858.282L8 12l-1.669-.864-1.858-.282-.842-1.68-1.337-1.32L2.6 6l-.306-1.854 1.337-1.32.842-1.68L6.331.864 8 0z"/>
+              <path d="M4 11.794V16l4-1 4 1v-4.206l-2.018.306L8 13.126 6.018 12.1 4 11.794z"/>
             </svg>
           </div>
 

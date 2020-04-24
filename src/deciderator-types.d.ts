@@ -55,6 +55,10 @@ interface LeaveUncertaintyRequest extends DecideratorRequest {
   uncertaintyId: string;
 }
 
+interface NextRoundRequest extends DecideratorRequest {
+  uncertaintyId: string;
+}
+
 interface SetUsernameRequest extends DecideratorRequest {
   username: string;
 }
@@ -73,21 +77,29 @@ interface FlipResult {
   waitTime: number;
 }
 
+interface RoundCompleteMetadata {
+  nextRoundIsHeadToHead: boolean;
+  nextRoundIsLightningLoop: boolean;
+  overallWinner: string | null;
+}
+
 interface ActiveOptionProperties {
-  coinStyle: string;
   results: FlipResult[];
-  roundComplete: boolean;
+  roundComplete: RoundCompleteMetadata | null;
 }
 
 interface UncertaintyOption {
   active: ActiveOptionProperties | null;
+  coinStyle: string;
   eliminated: boolean;
   name: string;
+  startedLoopEliminated: boolean;
 }
 
 interface UncertaintyRules {
   bestOf: number;
   finalTwoHeadToHead: boolean;
+  startingBestOf: number;
 }
 
 interface Uncertainty {
@@ -124,4 +136,3 @@ interface UpdateCoinStyleRequest extends DecideratorRequest {
   coinStyle: string;
   uncertaintyId: string;
 }
-

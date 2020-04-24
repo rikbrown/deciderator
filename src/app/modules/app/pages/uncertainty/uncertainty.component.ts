@@ -18,6 +18,7 @@ import {OnDestroyMixin, untilComponentDestroyed} from '@w11k/ngx-componentdestro
 import {ActivatedRoute} from '@angular/router';
 import {SetUsernameModalComponent} from './set-username-modal/set-username-modal.component';
 import {UsernameService} from '../../../../core/services/username/username.service';
+import {Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-uncertainty',
@@ -78,6 +79,8 @@ export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit,
   @ViewChild(RoundCompleteModalComponent) private roundCompleteModal: RoundCompleteModalComponent;
   @ViewChild(CoinComponent) private coinComponent: CoinComponent;
 
+  private coinStateSubscription: Subscription = null;
+
   constructor(
     private coinService: CoinService) {
     super();
@@ -95,10 +98,11 @@ export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit,
     return this.activeOption.active.results.filter(it => it.result === 'HEADS');
   }
 
+  get winner(): string {
+    return this.activeOption?.active?.roundComplete?.overallWinner;
+  }
+
   ngOnInit(): void {
-    this.coinService.observeCoinState('foo')
-      .pipe(untilComponentDestroyed(this))
-      .subscribe(coinState => this.coinState = coinState);
   }
 
   ngAfterViewInit(): void {
@@ -106,13 +110,9 @@ export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit,
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // for (const [propName, change] of Object.entries(changes)) {
-    //   // noinspection JSRedundantSwitchStatement
-    //   switch (propName) {
-    //     case 'uncertainty':
-    //       // this.onUncertaintyUpdate();
-    //   }
-    // }
+    if (changes.uncertainty) {
+      this.onUncertaintyUpdate();
+    }
   }
 
   changeCoinStyle(event: Event): void {
@@ -122,8 +122,17 @@ export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit,
       return;
     }
 
-    const nextCoinIndex = (this.availableCoinStyles.indexOf(this.activeOption.active.coinStyle) + 1) % this.availableCoinStyles.length;
-    this.activeOption.active.coinStyle = this.availableCoinStyles[nextCoinIndex];
+    const nextCoinIndex = (this.availableCoinStyles.indexOf(this.activeOption.coinStyle) + 1) % this.availableCoinStyles.length;
+    this.activeOption.coinStyle = this.availableCoinStyles[nextCoinIndex];
+  }
+
+  private onUncertaintyUpdate() {
+    this.coinStateSubscription?.unsubscribe();
+    if (this.uncertainty?.id) {
+      this.coinStateSubscription = this.coinService.observeCoinState(this.uncertainty.id)
+        .pipe(untilComponentDestroyed(this))
+        .subscribe(coinState => this.coinState = coinState);
+    }
   }
 }
 
