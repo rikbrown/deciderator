@@ -3,7 +3,12 @@ package codes.rik.deciderator
 import codes.rik.deciderator.types.ActiveOptionProperties
 import codes.rik.deciderator.types.CoinFace.HEADS
 import codes.rik.deciderator.types.CoinFace.TAILS
+import codes.rik.deciderator.types.CoinStyle
 import codes.rik.deciderator.types.FlipResult
+import codes.rik.deciderator.types.OptionName
+import codes.rik.deciderator.types.Round
+import codes.rik.deciderator.types.Round.HeadToHeadRound
+import codes.rik.deciderator.types.Round.MeaningfulVoteRound
 import codes.rik.deciderator.types.RoundCompleteMetadata
 import codes.rik.deciderator.types.Uncertainty
 import codes.rik.deciderator.types.UncertaintyId
@@ -13,6 +18,7 @@ import codes.rik.deciderator.types.Username
 import codes.rik.deciderator.types.activeOption
 import codes.rik.deciderator.types.activeOptionProps
 import codes.rik.deciderator.types.remainingOptions
+import codes.rik.deciderator.types.replace
 import java.lang.IllegalStateException
 import java.lang.RuntimeException
 import java.time.Duration
@@ -20,7 +26,10 @@ import java.time.Duration
 object UncertaintyManager {
   private val uncertainties = PLACEHOLDER_UNCERTAINTIES.associateBy { it.id }.toMutableMap()
 
-  fun create(name: String, options: Set<String>): UncertaintyId {
+  /**
+   * Create a new uncertainty
+   */
+  fun create(name: String, options: Set<OptionName>): UncertaintyId {
     val uncertainty = Uncertainty(
       id = createId(),
       name = name,
@@ -28,31 +37,50 @@ object UncertaintyManager {
         bestOf = 5,
         finalTwoHeadToHead = true
       ),
-      options = options.mapIndexed { i, name ->
+      options = options.map {
         UncertaintyOption(
-          name = name,
-          coinStyle = "germany",
-          active = i.takeIf { it == 0 }?.let { ActiveOptionProperties()
-          }
+          name = it,
+          coinStyle = CoinStyle("germany"),
         )
-      }
+      },
+      currentRound = MeaningfulVoteRound(options.first()) // TODO: only 2 options = h2h
     )
     uncertainties[uncertainty.id] = uncertainty
     return uncertainty.id
   }
 
-  fun get(id: UncertaintyId): Uncertainty {
-    return uncertainties[id] ?: throw RuntimeException("Unknown uncertainty: $id")
+  /**
+   * Retrieve an existing uncertainty
+   */
+  fun get(id: UncertaintyId) = uncertainties[id] ?: throw UncertaintyNotFoundException(id)
+
+  /**
+   * Update the coin style for an uncertainty
+   */
+  fun updateCoinStyle(uncertaintyId: UncertaintyId, style: CoinStyle) {
+    val uncertainty = get(uncertaintyId)
+    uncertainties[uncertaintyId] = when (val round = uncertainty.currentRound) {
+      is MeaningfulVoteRound -> uncertainty.copy(
+        options = uncertainty.options.replace(round.option) { it.copy(coinStyle = style) }
+      )
+      is HeadToHeadRound -> uncertainty.copy(currentRound = round.copy(coinStyle = style))
+    }
   }
 
-  fun updateCoinStyle(uncertaintyId: UncertaintyId, style: String) {
-    val newUncertainty = get(uncertaintyId).updateActiveOption { it.copy(coinStyle = style) }
-    uncertainties[uncertaintyId] = newUncertainty
-  }
-
+  /**
+   * Add a result to an uncertainty, potentially triggering side effects such as round, loop
+   * or uncertainty completion.
+   */
   fun addResult(uncertaintyId: UncertaintyId, result: FlipResult) {
     val uncertainty = get(uncertaintyId)
     var newUncertainty = uncertainty
+
+    uncertainty.copy(
+      currentRound = when (val round = uncertainty.currentRound) {
+        is MeaningfulVoteRound -> round.copy(results = round.results + result)
+        is HeadToHeadRound -> round.copy(results = round.results + result)
+      }
+    )
 
     // Add the new result
     newUncertainty = newUncertainty.updateActiveOption {
@@ -236,3 +264,5 @@ private val PLACEHOLDER_UNCERTAINTIES = listOf(
     )
   ),
 )
+
+data class UncertaintyNotFoundException(val id: UncertaintyId) : RuntimeException("Uncertainty not found: $id")

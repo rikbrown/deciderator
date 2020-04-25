@@ -1,1 +1,18 @@
-<p>winner-modal works!</p>
+<ng-template #content let-modal>
+  <div class="d-modal-content">
+    <div class="modal-header bg-success">
+      <h4 class="modal-title" id="modal-basic-title">
+        Winner
+      </h4>
+    </div>
+    <div class="modal-body">
+      <h1 class="display-1" id="winner-display-name">{{ name }}</h1>
+      We have known the bitterness of defeat and the exultation of triumph, and from both we have learned there can be no going back. We must move forward to preserve in peace what we've won in war.
+    </div>
+    <div class="modal-footer">
+      <button ngbAutofocus type="button" class="btn btn-secondary">
+        View Statistics
+      </button>
+    </div>
+  </div>
+</ng-template>

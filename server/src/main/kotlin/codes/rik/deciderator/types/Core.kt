@@ -17,11 +17,14 @@ data class UncertaintyId(override val id: String): IdValueType {
   }
 }
 
-data class Username(override val id: String): IdValueType {
-  val username = id;
-  override fun toString() = id
-}
+data class Username(@get:JsonValue val username: String)
 
 data class SessionId(override val id: String): IdValueType {
   override fun toString() = id
+}
+
+data class CoinStyle(@get:JsonValue val coinStyle: String)
+
+enum class CoinFace {
+  HEADS, TAILS
 }

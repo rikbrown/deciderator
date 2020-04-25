@@ -1,15 +1,29 @@
-import { Component, OnInit } from '@angular/core';
+import {AfterViewInit, Component, Input, OnInit, TemplateRef, ViewChild} from '@angular/core';
+import {NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-winner-modal',
   templateUrl: './winner-modal.component.html',
   styleUrls: ['./winner-modal.component.scss']
 })
-export class WinnerModalComponent implements OnInit {
+export class WinnerModalComponent implements AfterViewInit {
+  @Input() name: string;
+  @ViewChild('content') private contentTmpl: TemplateRef<any>;
+  private modalRef: NgbModalRef;
 
-  constructor() { }
+  constructor(
+    private modalService: NgbModal,
+  ) { }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
+    this.open();
+  }
+
+  open(): void {
+    this.modalRef = this.modalService.open(this.contentTmpl, {
+      beforeDismiss: () => false,
+      centered: true,
+    });
   }
 
 }

@@ -1,14 +1,34 @@
 package codes.rik.deciderator.types
 
+import com.fasterxml.jackson.annotation.JsonValue
 import java.lang.IllegalStateException
 import java.time.Duration
+import codes.rik.deciderator.replace
 
 data class Uncertainty(
   val id: UncertaintyId,
   val name: String,
   val rules: UncertaintyRules,
   val options: List<UncertaintyOption>,
+  val currentRound: Round,
+  val winner: Winner? = null
 )
+
+sealed class Round(val type: String) {
+  abstract val results: List<FlipResult>
+
+  data class MeaningfulVoteRound(
+    val option: OptionName,
+    override val results: List<FlipResult> = listOf(),
+  ) : Round("MeaningfulVote")
+
+  data class HeadToHeadRound(
+    val headsOption: OptionName,
+    val tailsOption: OptionName,
+    val coinStyle: CoinStyle,
+    override val results: List<FlipResult> = listOf(),
+  ) : Round("HeadToHead")
+}
 
 data class UncertaintyRules(
   val bestOf: Int,
@@ -17,36 +37,27 @@ data class UncertaintyRules(
 )
 
 data class UncertaintyOption(
-  val name: String,
+  val name: OptionName,
   val startedLoopEliminated: Boolean = false,
   val eliminated: Boolean = false,
-  val coinStyle: String,
-  val active: ActiveOptionProperties? = null
+  val coinStyle: CoinStyle,
 )
 
-data class ActiveOptionProperties(
-  val roundComplete: RoundCompleteMetadata? = null,
-  val results: List<FlipResult> = listOf()
-)
-
-data class RoundCompleteMetadata(
-  val nextRoundIsLightningLoop: Boolean = false,
-  val nextRoundIsHeadToHead: Boolean = false,
-  val overallWinner: String? = null,
+data class Winner(
+  val name: OptionName,
+  // TODO: add statistics
 )
 
 data class FlipResult(
   val result: CoinFace,
-  val coinStyle: String,
+  val coinStyle: CoinStyle,
   val flippedBy: Username,
   val waitTime: Duration,
-  val flipTime: Duration
+  val flipTime: Duration,
 )
 
-enum class CoinFace {
-  HEADS, TAILS
-}
-
-val Uncertainty.activeOption get() = options.find { it.active != null } ?: throw IllegalStateException()
-val Uncertainty.activeOptionProps get() = options.find { it.active != null }?.active ?: throw IllegalStateException()
+data class OptionName(@get:JsonValue val optionName: String)
 val Uncertainty.remainingOptions get() = options.filter { !it.eliminated }
+
+fun Collection<UncertaintyOption>.replace(name: OptionName, replacer: (UncertaintyOption) -> UncertaintyOption)
+  = replace({ it.name == name }, replacer)

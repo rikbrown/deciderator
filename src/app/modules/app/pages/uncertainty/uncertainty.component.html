@@ -1,5 +1,6 @@
 <app-round-complete-modal *ngIf="uncertainty && !winner" [option]="activeOption" [uncertaintyId]="uncertainty.id"></app-round-complete-modal>
 <app-set-username-modal *ngIf="!winner"></app-set-username-modal>
+<app-winner-modal *ngIf="winner" [name]="winner"></app-winner-modal>
 
 <div class="d-flex h-100 flex-column">
   <nav class="navbar navbar-expand-md navbar-dark bg-dark">
@@ -49,7 +50,6 @@
   </nav>
 
   <main id="main-winner" role="main" class="row flex-fill d-flex justify-content-start" *ngIf="uncertainty && winner" [attr.data-round-name]="winner">
-    winner winner
   </main>
 
   <main id="main-no-winner" role="main" class="row flex-fill d-flex justify-content-start" *ngIf="uncertainty && !winner" [attr.data-round-name]="activeOption.name">
