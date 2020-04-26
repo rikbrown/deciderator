@@ -54,7 +54,7 @@
     </div>
   </nav>
 
-  <main id="main-winner" role="main" class="row flex-fill d-flex justify-content-start" *ngIf="uncertainty && uncertainty.winner" [attr.data-round-name]="uncertainty.winner">
+  <main id="main-winner" role="main" class="row flex-fill d-flex justify-content-start" *ngIf="uncertainty && uncertainty.winner" [attr.data-round-name]="uncertainty.winner.name">
   </main>
 
   <main id="main-no-winner" role="main" class="row flex-fill d-flex justify-content-start" *ngIf="uncertainty && !uncertainty.winner" [attr.data-round-name]="(activeOption[1] && 'h2h') || activeOption[0].name">
@@ -95,7 +95,7 @@
   <footer class="options-footer row border border-700" *ngIf="uncertainty">
     <div class="col">
       <div class="row options-list">
-        <div class="col" [ngClass]="{'winner': uncertainty?.winner?.name == option.name, 'active': isActive(option.name), 'eliminated': option.eliminated}" *ngFor="let option of uncertainty.options">
+        <div class="col" [ngClass]="{'winner': uncertainty?.winner?.name == option.name, 'active': isActive(option.name) && !uncertainty?.winner, 'eliminated': option.eliminated}" *ngFor="let option of uncertainty.options">
 
           <div class="svg-container">
             <svg class="bi bi-caret-down-fill active" width="48px" height="48px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
