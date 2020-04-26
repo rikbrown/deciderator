@@ -23,6 +23,7 @@ import {UncertaintyService} from '../../../../../core/services/uncertainty/uncer
 export class RoundCompleteModalComponent implements AfterViewInit, OnChanges {
   @Input() uncertaintyId: string;
   @Input() option: UncertaintyOption;
+  @Input() round: Round;
   // @Output() closed = new EventEmitter<void>();
 
   @ViewChild('content') private contentTmpl: TemplateRef<any>;
@@ -33,14 +34,11 @@ export class RoundCompleteModalComponent implements AfterViewInit, OnChanges {
     private uncertaintyService: UncertaintyService) {}
 
   ngAfterViewInit(): void {
-    this.onOptionUpdate();
+    this.onUpdate();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.option && changes.option.previousValue != null) {
-      // check previous value because first onchange fires before view initialised, so ignore it - we'll call in ngAfterViewInit
-      this.onOptionUpdate(changes.option);
-    }
+    this.onUpdate(changes.round, changes.option)
   }
 
   open() {
@@ -61,11 +59,17 @@ export class RoundCompleteModalComponent implements AfterViewInit, OnChanges {
     this.uncertaintyService.nextRound(this.uncertaintyId);
   }
 
-  private onOptionUpdate(change?: SimpleChange) {
-    const before: UncertaintyOption = change?.previousValue;
-    if ((!before?.active?.roundComplete || before?.name !== this.option.name) && this.option?.active?.roundComplete) {
+  private onUpdate(roundChange?: SimpleChange, optionChange?: SimpleChange) {
+    console.log("onUpdate", roundChange, optionChange);
+
+    const beforeRound: Round = roundChange?.previousValue;
+    const beforeOption: UncertaintyOption = optionChange?.previousValue;
+
+    if ((!beforeRound?.winningFace || beforeOption?.name !== this.option.name) && this.round.winningFace) {
+      console.log('open');
       this.open();
-    } else if (before?.active?.roundComplete && !this.option?.active?.roundComplete) {
+    } else if (beforeRound?.winningFace && !this.round.winningFace) {
+      console.log('close');
       this.modalRef?.close(true); // doesn't trigger (closed)
     }
   }

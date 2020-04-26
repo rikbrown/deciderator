@@ -1,27 +1,26 @@
 package codes.rik.deciderator
 
-import codes.rik.deciderator.types.ActiveOptionProperties
 import codes.rik.deciderator.types.CoinFace.HEADS
 import codes.rik.deciderator.types.CoinFace.TAILS
 import codes.rik.deciderator.types.CoinStyle
 import codes.rik.deciderator.types.FlipResult
 import codes.rik.deciderator.types.OptionName
 import codes.rik.deciderator.types.Round
-import codes.rik.deciderator.types.Round.HeadToHeadRound
-import codes.rik.deciderator.types.Round.MeaningfulVoteRound
-import codes.rik.deciderator.types.RoundCompleteMetadata
+import codes.rik.deciderator.types.Round.RoundData.HeadToHeadRound
+import codes.rik.deciderator.types.Round.RoundData.MeaningfulVoteRound
 import codes.rik.deciderator.types.Uncertainty
 import codes.rik.deciderator.types.UncertaintyId
 import codes.rik.deciderator.types.UncertaintyOption
 import codes.rik.deciderator.types.UncertaintyRules
 import codes.rik.deciderator.types.Username
-import codes.rik.deciderator.types.activeOption
-import codes.rik.deciderator.types.activeOptionProps
+import codes.rik.deciderator.types.Winner
+import codes.rik.deciderator.types.count
+import codes.rik.deciderator.types.currentRules
 import codes.rik.deciderator.types.remainingOptions
 import codes.rik.deciderator.types.replace
-import java.lang.IllegalStateException
-import java.lang.RuntimeException
+import java.lang.IllegalArgumentException
 import java.time.Duration
+import kotlin.random.Random
 
 object UncertaintyManager {
   private val uncertainties = PLACEHOLDER_UNCERTAINTIES.associateBy { it.id }.toMutableMap()
@@ -30,6 +29,9 @@ object UncertaintyManager {
    * Create a new uncertainty
    */
   fun create(name: String, options: Set<OptionName>): UncertaintyId {
+    if (name.isBlank()) throw IllegalArgumentException("Name required")
+    if (options.size < 2) throw IllegalArgumentException(">=2 options required")
+
     val uncertainty = Uncertainty(
       id = createId(),
       name = name,
@@ -43,7 +45,13 @@ object UncertaintyManager {
           coinStyle = CoinStyle("germany"),
         )
       },
-      currentRound = MeaningfulVoteRound(options.first()) // TODO: only 2 options = h2h
+      currentRound = Round(
+        coinStyle = CoinStyle("germany"),
+        data = when (options.size) {
+          2 -> HeadToHeadRound(options.elementAt(0), options.elementAt(1))
+          else -> MeaningfulVoteRound(options.first())
+        }
+      )
     )
     uncertainties[uncertainty.id] = uncertainty
     return uncertainty.id
@@ -59,12 +67,17 @@ object UncertaintyManager {
    */
   fun updateCoinStyle(uncertaintyId: UncertaintyId, style: CoinStyle) {
     val uncertainty = get(uncertaintyId)
-    uncertainties[uncertaintyId] = when (val round = uncertainty.currentRound) {
-      is MeaningfulVoteRound -> uncertainty.copy(
-        options = uncertainty.options.replace(round.option) { it.copy(coinStyle = style) }
-      )
-      is HeadToHeadRound -> uncertainty.copy(currentRound = round.copy(coinStyle = style))
-    }
+
+    uncertainties[uncertaintyId] = uncertainty.copy(
+      // always update in current round
+      currentRound = uncertainty.currentRound.copy(coinStyle = style),
+
+      // also update for the option if we're in a meaningful vote
+      options = when (val roundData = uncertainty.currentRound.data) {
+        is MeaningfulVoteRound -> uncertainty.options.replace(roundData.option) { it.copy(coinStyle = style) }
+        is HeadToHeadRound -> uncertainty.options
+      }
+    )
   }
 
   /**
@@ -73,108 +86,111 @@ object UncertaintyManager {
    */
   fun addResult(uncertaintyId: UncertaintyId, result: FlipResult) {
     val uncertainty = get(uncertaintyId)
-    var newUncertainty = uncertainty
-
-    uncertainty.copy(
-      currentRound = when (val round = uncertainty.currentRound) {
-        is MeaningfulVoteRound -> round.copy(results = round.results + result)
-        is HeadToHeadRound -> round.copy(results = round.results + result)
-      }
-    )
 
     // Add the new result
-    newUncertainty = newUncertainty.updateActiveOption {
-      it.copy(active = it.active?.copy(results = it.active.results + result))
+    val results = uncertainty.currentRound.results + result
+
+    // Did any face win this round?
+    val roundWinningFace = when {
+      results.count(HEADS) > uncertainty.currentRules.bestOf.toDouble() / 2 -> HEADS
+      results.count(TAILS) > uncertainty.currentRules.bestOf.toDouble() / 2 -> TAILS
+      else -> null
     }
 
-    // Calculate if heads or tails won the round
-    val active = newUncertainty.activeOption.active!!
-    when {
-        active.results.filter { it.result == HEADS }.size > uncertainty.rules.bestOf.toDouble() / 2 -> false
-        active.results.filter { it.result == TAILS }.size > uncertainty.rules.bestOf.toDouble() / 2 -> true
-        else -> null
-    }?.also { eliminated ->
-      // Determine any special considerations for next round (if end of loop)
-      val roundCompleteMetadata = when (newUncertainty.remainingOptions.size) {
-        1 -> RoundCompleteMetadata(overallWinner = newUncertainty.remainingOptions.first().name)
-        2 -> RoundCompleteMetadata(nextRoundIsHeadToHead = true)
-        0 -> RoundCompleteMetadata(nextRoundIsLightningLoop = true)
-        else -> RoundCompleteMetadata()
+    // Update options
+    val options = if (roundWinningFace != null) {
+      when (val roundData = uncertainty.currentRound.data) {
+        is MeaningfulVoteRound -> {
+          when (roundWinningFace) {
+            HEADS -> uncertainty.options // not eliminated
+            TAILS -> uncertainty.options.replace(roundData.option) { it.copy(eliminated = true) }
+          }
+        }
+        is HeadToHeadRound -> uncertainty.options
       }
-      newUncertainty = newUncertainty.updateActiveOption {
-        it.copy(
-          eliminated = eliminated,
-          active = active.copy(roundComplete = roundCompleteMetadata)
-        )
-      }
+    } else {
+      uncertainty.options
     }
 
-    uncertainties[uncertaintyId] = newUncertainty
+    // Determine if we have an *overall* winner
+    val winner = when (val roundData = uncertainty.currentRound.data) {
+      is MeaningfulVoteRound -> options.singleOrNull { !it.eliminated } // if only one remaining non-eliminated
+      is HeadToHeadRound -> roundWinningFace
+        ?.let { if (it == HEADS) roundData.headsOption else roundData.tailsOption }
+        ?.let { name -> options.find { it.name == name } }
+    }
+
+    uncertainties[uncertaintyId] = uncertainty.copy(
+      currentRound = uncertainty.currentRound.copy(results = results, winningFace = roundWinningFace),
+      options = options,
+      winner = winner?.let { Winner(it.name) }
+    )
   }
 
   fun nextRound(uncertaintyId: UncertaintyId) {
     val uncertainty = get(uncertaintyId)
-    var newUncertainty = uncertainty
+    val roundData = uncertainty.currentRound.data
+    if (roundData !is MeaningfulVoteRound) throw RuntimeException("Next round not possible for ${roundData::class.simpleName}")
 
-    val curOption = uncertainty.activeOption
-    var idx = uncertainty.options.indexOf(curOption) + 1
-    var nxtOption: UncertaintyOption?
-    while (true) {
-      if (idx == uncertainty.options.size) {
-        idx = 0
+    fun makeUpdatedUncertainty(): Uncertainty {
+      var idx = uncertainty.options.indexOfFirst { it.name == roundData.option }
+      while (true) {
+        idx++
 
-        // Do we need to do any new loop special behaviour?
-        when (newUncertainty.remainingOptions.size) {
-          1 -> {
-            // winner. metadata should already be set, and this shouldn't really be called. no-op
-            return
-          }
-          2 -> {
-            // h2h. reconfigure.
-            // FIXME - break out of this nextRound and reconfigure the Uncertainty
-            return
-          }
-          0 -> {
-            // switch to lightning rules, reset elimination status
-            newUncertainty = newUncertainty.copy(
-              rules = newUncertainty.rules.copy(bestOf = 1),
-              options = newUncertainty.options.map { it.copy(eliminated = it.startedLoopEliminated) }
-            )
-          }
-        }
-      }
-
-      nxtOption = uncertainty.options[idx]
-      if (!nxtOption.eliminated) break
-    }
-
-    // update options
-    newUncertainty = newUncertainty.copy(
-      options = newUncertainty.options
-        .map {
-          it.copy(
-            startedLoopEliminated = it.eliminated,
-            active = when(it) {
-              nxtOption -> ActiveOptionProperties()
-              else -> null
+        // End of loop?
+        if (idx == uncertainty.options.size) {
+          // Do we need to do any new loop special behaviour?
+          when (uncertainty.remainingOptions.size) {
+            1 -> {
+              // winner. metadata should already be set, and this shouldn't really be called. no-op.
+              return uncertainty
             }
+            2 -> {
+              // Update uncertainty enabling a H2H round
+              return uncertainty.copy(
+                currentRound = Round(
+                  coinStyle = uncertainty.remainingOptions[Random.nextInt(1)].coinStyle,
+                  data = HeadToHeadRound(
+                    headsOption = uncertainty.remainingOptions[0].name,
+                    tailsOption = uncertainty.remainingOptions[1].name,
+                  )
+                )
+              )
+            }
+            0 -> {
+              // switch to lightning rules, reset elimination status
+              val nxtOption = uncertainty.options.first { !it.eliminated }
+              return uncertainty.copy(
+                currentRound = Round(
+                  coinStyle = nxtOption.coinStyle,
+                  data = MeaningfulVoteRound(
+                    option = nxtOption.name,
+                    customRules = uncertainty.rules.copy(bestOf = 1),
+                  )
+                ),
+                options = uncertainty.options.map { it.copy(eliminated = it.startedLoopEliminated) }
+              )
+            }
+          }
+
+          // Otherwise just loop around
+          idx = 0
+        }
+
+        val nxtOption = uncertainty.options[idx]
+        if (!nxtOption.eliminated) {
+          return uncertainty.copy(
+            currentRound = Round(
+              coinStyle = nxtOption.coinStyle,
+              data = MeaningfulVoteRound(option = nxtOption.name)
+            ),
+            options = uncertainty.options.map { it.copy(startedLoopEliminated = it.eliminated) }
           )
         }
-    )
-
-    uncertainties[uncertaintyId] = newUncertainty
-  }
-
-  private fun Uncertainty.updateActiveOption(updater: (UncertaintyOption) -> UncertaintyOption) = copy(
-    options = options
-      .map {
-        if (it.active != null) {
-          updater(it)
-        } else {
-          it
-        }
       }
-  )
+    }
+    uncertainties[uncertaintyId] = makeUpdatedUncertainty()
+  }
 
   private fun createId(): UncertaintyId {
     do {
@@ -191,77 +207,79 @@ private val PLACEHOLDER_UNCERTAINTIES = listOf(
     id = UncertaintyId("foo"),
     name = "[TEST] What game should we play next?",
     rules = UncertaintyRules(bestOf = 5, finalTwoHeadToHead = true),
-    options = listOf(
-      UncertaintyOption("EU4", coinStyle = "first_world_war"),
-      UncertaintyOption("Civ VI", coinStyle = "eu_germany"),
-      UncertaintyOption("HoI4", coinStyle = "germany", eliminated = true),
-      UncertaintyOption("Stellaris",
-        coinStyle = "usa_trump",
-        active = ActiveOptionProperties(
-          results = listOf(
-            FlipResult(
-              result = HEADS,
-              coinStyle = "germany",
-              flippedBy = Username("Rik"),
-              waitTime = Duration.ofMillis(1234),
-              flipTime = Duration.ofMillis(4567)
-            ),
-            FlipResult(
-              result = HEADS,
-              coinStyle = "germany",
-              flippedBy = Username("Mark"),
-              waitTime = Duration.ofMillis(2345),
-              flipTime = Duration.ofMillis(7655)
-            ),
-            FlipResult(
-              result = TAILS,
-              coinStyle = "germany",
-              flippedBy = Username("Mark"),
-              waitTime = Duration.ofMillis(23112),
-              flipTime = Duration.ofMillis(5342)
-            ),
-          )
-        )
+    currentRound = Round(
+      coinStyle = CoinStyle("eu_germany"),
+      data = MeaningfulVoteRound(OptionName("Civ VI")),
+      results = listOf(
+        FlipResult(
+          result = HEADS,
+          coinStyle = CoinStyle("germany"),
+          flippedBy = Username("Rik"),
+          waitTime = Duration.ofMillis(1234),
+          flipTime = Duration.ofMillis(4567)
+        ),
+        FlipResult(
+          result = HEADS,
+          coinStyle = CoinStyle("germany"),
+          flippedBy = Username("Mark"),
+          waitTime = Duration.ofMillis(2345),
+          flipTime = Duration.ofMillis(7655)
+        ),
+        FlipResult(
+          result = TAILS,
+          coinStyle = CoinStyle("germany"),
+          flippedBy = Username("Mark"),
+          waitTime = Duration.ofMillis(23112),
+          flipTime = Duration.ofMillis(5342)
+        ),
+        FlipResult(
+          result = TAILS,
+          coinStyle = CoinStyle("germany"),
+          flippedBy = Username("Mark"),
+          waitTime = Duration.ofMillis(23112),
+          flipTime = Duration.ofMillis(5342)
+        ),
       )
-    )
-  ),
-  Uncertainty(
-    id = UncertaintyId("bar"),
-    name = "[TEST] Best of 1!",
-    rules = UncertaintyRules(bestOf = 1, finalTwoHeadToHead = true),
+    ),
     options = listOf(
-      UncertaintyOption("EU4", coinStyle = "first_world_war", active = ActiveOptionProperties()),
-      UncertaintyOption("Civ VI", coinStyle = "eu_germany"),
-      UncertaintyOption("HoI4", coinStyle = "germany"),
-    )
+      UncertaintyOption(OptionName("EU4"), coinStyle = CoinStyle("first_world_war")),
+      UncertaintyOption(OptionName("Civ VI"), coinStyle = CoinStyle("eu_germany")),
+      UncertaintyOption(OptionName("HoI4"), coinStyle = CoinStyle("germany"), eliminated = true),
+      UncertaintyOption(OptionName("Stellaris"), coinStyle = CoinStyle("usa_trump"))
+    ),
   ),
   Uncertainty(
     id = UncertaintyId("winner"),
     name = "[TEST] Already has a winner",
     rules = UncertaintyRules(bestOf = 5, finalTwoHeadToHead = true),
-    options = listOf(
-      UncertaintyOption("EU4", coinStyle = "first_world_war", eliminated = true),
-      UncertaintyOption("Civ VI", coinStyle = "eu_germany"),
-      UncertaintyOption("HoI4", coinStyle = "germany", eliminated = true),
-      UncertaintyOption("Stellaris",
-        coinStyle = "usa_trump",
-        eliminated = true,
-        active = ActiveOptionProperties(
-          roundComplete = RoundCompleteMetadata(
-            overallWinner = "Civ VI",
-          ),
-          results = listOf(
-            FlipResult(
-              result = TAILS,
-              coinStyle = "germany",
-              flippedBy = Username("Rik"),
-              waitTime = Duration.ofMillis(1234),
-              flipTime = Duration.ofMillis(4567)
-            ),
-          )
-        )
+    currentRound = Round(
+      coinStyle = CoinStyle("first_world_war"),
+      data = HeadToHeadRound(
+        headsOption = OptionName("EU4"),
+        tailsOption = OptionName("Civ VI"),
       )
-    )
+    ),
+    options = listOf(
+      UncertaintyOption(OptionName("EU4"), coinStyle = CoinStyle("first_world_war")),
+      UncertaintyOption(OptionName("Civ VI"), coinStyle = CoinStyle("eu_germany")),
+      UncertaintyOption(OptionName("HoI4"), coinStyle = CoinStyle("germany"), eliminated = true),
+      UncertaintyOption(OptionName("Stellaris"), coinStyle = CoinStyle("usa_trump"), eliminated = true)
+    ),
+    winner = Winner(OptionName("Civ VI"))
+  ),
+  Uncertainty(
+    id = UncertaintyId("bestof1"),
+    name = "[TEST] Best of 1",
+    rules = UncertaintyRules(bestOf = 1, finalTwoHeadToHead = true),
+    currentRound = Round(
+      coinStyle = CoinStyle("eu_germany"),
+      data = MeaningfulVoteRound(OptionName("EU4")),
+    ),
+    options = listOf(
+      UncertaintyOption(OptionName("EU4"), coinStyle = CoinStyle("first_world_war")),
+      UncertaintyOption(OptionName("Civ VI"), coinStyle = CoinStyle("eu_germany")),
+      UncertaintyOption(OptionName("HoI4"), coinStyle = CoinStyle("germany")),
+    ),
   ),
 )
 

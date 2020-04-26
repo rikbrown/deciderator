@@ -31,13 +31,13 @@ dependencies {
 }
 
 configure<JavaPluginConvention> {
-    sourceCompatibility = JavaVersion.VERSION_12
+    sourceCompatibility = JavaVersion.VERSION_13
 }
 tasks {
     compileKotlin {
-        kotlinOptions.jvmTarget = "12"
+        kotlinOptions.jvmTarget = "13"
     }
     compileTestKotlin {
-        kotlinOptions.jvmTarget = "12"
+        kotlinOptions.jvmTarget = "13"
     }
 }

@@ -1,4 +1,5 @@
 @import "../../../../../../node_modules/bootswatch/dist/cyborg/variables";
+@import "../../../../../styles";
 
 ul { // for some reason, this doesn't work if nested inside anything i.e. popover
   margin-bottom: 0;
@@ -36,19 +37,12 @@ nav {
 }
 
 main {
-  background-size: cover;
   padding-top: 15px;
   padding-bottom:15px;
   margin-left: 0 !important;
   margin-right: 0 !important;
 
-  &[data-round-name*="Civ"], &[data-round-name*="civ"] {
-    background-image: url("/assets/img/bgs/civ6.jpg");
-  }
-
-  &[data-round-name*="Stellaris"], &[data-round-name*="stellaris"] {
-    background-image: url("/assets/img/bgs/stellaris.jpg");
-  }
+  @include roundBackgrounds;
 
   .col {
     font-variant: small-caps;
@@ -63,6 +57,14 @@ main {
     background-color: rgba(0, 0, 0, .75);
   }
 
+}
+
+main:after {
+  content:'';
+  position: fixed;
+  height: 100%;
+  width: 50%;
+  left: 50%;
 }
 
 footer.options-footer {

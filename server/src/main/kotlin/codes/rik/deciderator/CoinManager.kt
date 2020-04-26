@@ -78,10 +78,10 @@ private class Flipper(initialState: CoinState, val onUpdate: (CoinState) -> Unit
       )
     }
 
-    val rotateMax = Random.nextDouble(2.5, 5.0)
-    val rotateMin = Random.nextDouble(1.25, 2.0)
-    val maxSpeedDelay = Random.nextInt(2000, 10000)
-    val minSpeedDelay = Random.nextInt(2000, 4000)
+    val rotateMax = Random.nextDouble(2.0, 5.0)
+    val rotateMin = Random.nextDouble(1.15, 2.0)
+    val maxSpeedDelay = Random.nextInt(1000, 3000)
+    val minSpeedDelay = Random.nextInt(1000, 3000)
 
     while (coinState.rotationSpeed < rotateMax) {
       delayThenChangeSpeed(Random.nextDouble(1.03, 1.07))

@@ -1,7 +1,6 @@
 package codes.rik.deciderator.types
 
 import com.fasterxml.jackson.annotation.JsonValue
-import java.lang.IllegalStateException
 import java.time.Duration
 import codes.rik.deciderator.replace
 
@@ -14,20 +13,23 @@ data class Uncertainty(
   val winner: Winner? = null
 )
 
-sealed class Round(val type: String) {
-  abstract val results: List<FlipResult>
+data class Round(
+  val data: RoundData,
+  val coinStyle: CoinStyle,
+  val results: List<FlipResult> = listOf(),
+  val winningFace: CoinFace? = null,
+) {
+  sealed class RoundData {
+    data class MeaningfulVoteRound(
+      val option: OptionName,
+      val customRules: UncertaintyRules? = null
+    ) : RoundData()
 
-  data class MeaningfulVoteRound(
-    val option: OptionName,
-    override val results: List<FlipResult> = listOf(),
-  ) : Round("MeaningfulVote")
-
-  data class HeadToHeadRound(
-    val headsOption: OptionName,
-    val tailsOption: OptionName,
-    val coinStyle: CoinStyle,
-    override val results: List<FlipResult> = listOf(),
-  ) : Round("HeadToHead")
+    data class HeadToHeadRound(
+      val headsOption: OptionName,
+      val tailsOption: OptionName,
+    ) : RoundData()
+  }
 }
 
 data class UncertaintyRules(
@@ -38,9 +40,9 @@ data class UncertaintyRules(
 
 data class UncertaintyOption(
   val name: OptionName,
-  val startedLoopEliminated: Boolean = false,
-  val eliminated: Boolean = false,
   val coinStyle: CoinStyle,
+  val eliminated: Boolean = false,
+  val startedLoopEliminated: Boolean = false,
 )
 
 data class Winner(
@@ -58,6 +60,9 @@ data class FlipResult(
 
 data class OptionName(@get:JsonValue val optionName: String)
 val Uncertainty.remainingOptions get() = options.filter { !it.eliminated }
+val Uncertainty.currentRules get() = (currentRound.data as? Round.RoundData.MeaningfulVoteRound)?.customRules ?: rules
 
 fun Collection<UncertaintyOption>.replace(name: OptionName, replacer: (UncertaintyOption) -> UncertaintyOption)
   = replace({ it.name == name }, replacer)
+
+fun Collection<FlipResult>.count(face: CoinFace) = filter { it.result == face }.size

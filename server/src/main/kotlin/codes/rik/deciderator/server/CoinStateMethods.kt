@@ -2,20 +2,19 @@ package codes.rik.deciderator.server
 
 import codes.rik.deciderator.CoinManager
 import codes.rik.deciderator.UncertaintyManager
+import codes.rik.deciderator.types.CoinStyle
 import codes.rik.deciderator.types.FlipResult
 import codes.rik.deciderator.types.Messages
 import codes.rik.deciderator.types.Messages.CoinStateMessage
 import codes.rik.deciderator.types.Messages.UncertaintyDetailsMessage
 import codes.rik.deciderator.types.Messages.UpdateCoinStateRequest
 import codes.rik.deciderator.types.Messages.UpdateCoinStyleRequest
-import codes.rik.deciderator.types.activeOption
-import codes.rik.deciderator.types.activeOptionProps
 import org.springframework.web.socket.WebSocketSession
 import java.time.Duration
 import java.time.Instant
 
 fun updateCoinStyle(msg: UpdateCoinStyleRequest, session: WebSocketSession) {
-  UncertaintyManager.updateCoinStyle(msg.uncertaintyId, msg.coinStyle)
+  UncertaintyManager.updateCoinStyle(msg.uncertaintyId, CoinStyle(msg.coinStyle))
 
   DecideratorHandler.getUncertaintySessions(msg.uncertaintyId)
     .filterNot { it.sessionId == session.sessionId } // don't notify the caller
@@ -45,7 +44,7 @@ fun flipCoin(msg: Messages.FlipCoinRequest, session: WebSocketSession) {
       // When flipping is complete, convert it into a result, add it, and send the latest details
       val result = FlipResult(
         result = coinFace,
-        coinStyle = uncertainty.activeOption.coinStyle,
+        coinStyle = uncertainty.currentRound.coinStyle,
         flippedBy = session.username,
         waitTime = waitTime,
         flipTime = Duration.between(startTime, Instant.now())

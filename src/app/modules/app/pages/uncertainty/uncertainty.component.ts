@@ -86,20 +86,28 @@ export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit,
     super();
   }
 
-  get activeOption(): UncertaintyOption {
-    return this.uncertainty?.options.find(it => it.active);
+  get activeOption(): [UncertaintyOption, UncertaintyOption?] {
+    const roundData = this.uncertainty?.currentRound.data
+    if (isHeadToHead(roundData)) {
+      return [
+        this.uncertainty?.options.find(it => it.name == roundData.headsOption),
+        this.uncertainty?.options.find(it => it.name == roundData.tailsOption),
+      ]
+    } else if (isMeaningfulVote(roundData)) {
+      return [this.uncertainty?.options.find(it => it.name == roundData.option), null]
+    }
   }
 
-  get activeTails(): FlipResult[] {
-    return this.activeOption.active.results.filter(it => it.result === 'TAILS');
+  get headsResults(): FlipResult[] {
+    return this.uncertainty?.currentRound.results.filter(it => it.result === 'HEADS');
   }
 
-  get activeHeads(): FlipResult[] {
-    return this.activeOption.active.results.filter(it => it.result === 'HEADS');
+  get tailsResults(): FlipResult[] {
+    return this.uncertainty?.currentRound.results.filter(it => it.result === 'TAILS');
   }
 
-  get winner(): string {
-    return this.activeOption?.active?.roundComplete?.overallWinner;
+  isActive(optionName: string): boolean {
+    return !!this.activeOption?.find(it => it?.name == optionName);
   }
 
   ngOnInit(): void {
@@ -122,8 +130,8 @@ export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit,
       return;
     }
 
-    const nextCoinIndex = (this.availableCoinStyles.indexOf(this.activeOption.coinStyle) + 1) % this.availableCoinStyles.length;
-    this.activeOption.coinStyle = this.availableCoinStyles[nextCoinIndex];
+    const nextCoinIndex = (this.availableCoinStyles.indexOf(this.uncertainty.currentRound.coinStyle) + 1) % this.availableCoinStyles.length;
+    this.uncertainty.currentRound.coinStyle = this.availableCoinStyles[nextCoinIndex];
   }
 
   private onUncertaintyUpdate() {
@@ -135,4 +143,13 @@ export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit,
     }
   }
 }
+
+function isHeadToHead(x: RoundData): x is HeadToHeadRound {
+  return 'headsOption' in x
+}
+
+function isMeaningfulVote(x: RoundData): x is MeaningfulVoteRound {
+  return 'option' in x
+}
+
 

@@ -8,6 +8,7 @@ import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 export class ResultsColComponent implements OnInit {
   @Input() results: FlipResult[];
   @Input() face: string;
+  @Input() faceOption: UncertaintyOption;
 
   constructor() { }
 

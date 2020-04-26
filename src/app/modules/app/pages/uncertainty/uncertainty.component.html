@@ -1,6 +1,11 @@
-<app-round-complete-modal *ngIf="uncertainty && !winner" [option]="activeOption" [uncertaintyId]="uncertainty.id"></app-round-complete-modal>
-<app-set-username-modal *ngIf="!winner"></app-set-username-modal>
-<app-winner-modal *ngIf="winner" [name]="winner"></app-winner-modal>
+<app-round-complete-modal
+  *ngIf="uncertainty && !uncertainty.winner && activeOption[0] && !activeOption[1]"
+  [option]="activeOption[0]"
+  [round]="uncertainty.currentRound"
+  [uncertaintyId]="uncertainty.id">
+</app-round-complete-modal>
+<app-set-username-modal *ngIf="!uncertainty?.winner"></app-set-username-modal>
+<app-winner-modal *ngIf="uncertainty?.winner" [name]="uncertainty.winner.name"></app-winner-modal>
 
 <div class="d-flex h-100 flex-column">
   <nav class="navbar navbar-expand-md navbar-dark bg-dark">
@@ -49,14 +54,15 @@
     </div>
   </nav>
 
-  <main id="main-winner" role="main" class="row flex-fill d-flex justify-content-start" *ngIf="uncertainty && winner" [attr.data-round-name]="winner">
+  <main id="main-winner" role="main" class="row flex-fill d-flex justify-content-start" *ngIf="uncertainty && uncertainty.winner" [attr.data-round-name]="uncertainty.winner">
   </main>
 
-  <main id="main-no-winner" role="main" class="row flex-fill d-flex justify-content-start" *ngIf="uncertainty && !winner" [attr.data-round-name]="activeOption.name">
+  <main id="main-no-winner" role="main" class="row flex-fill d-flex justify-content-start" *ngIf="uncertainty && !uncertainty.winner" [attr.data-round-name]="(activeOption[1] && 'h2h') || activeOption[0].name">
     <div class="col col-3 results-col">
       <app-results-col
         face="Heads"
-        [results]="activeHeads"
+        [results]="headsResults"
+        [faceOption]="activeOption[1] ? activeOption[0] : null"
       ></app-results-col>
     </div>
 
@@ -65,10 +71,10 @@
       <div class="card">
         <div class="card-body">
           <app-coin
-            *ngIf="coinState"
+            *ngIf="coinState && uncertainty"
             [state]="coinState"
-            [uncertaintyId]="uncertainty?.id"
-            style="{{activeOption.coinStyle}}"
+            [uncertaintyId]="uncertainty.id"
+            [style]="uncertainty.currentRound.coinStyle"
             (contextmenu)="changeCoinStyle($event);">
           </app-coin>
 
@@ -80,7 +86,8 @@
     <div class="col col-3 results-col">
       <app-results-col
         face="Tails"
-        [results]="activeTails"
+        [results]="tailsResults"
+        [faceOption]="activeOption[1]"
       ></app-results-col>
     </div>
   </main>
@@ -88,7 +95,7 @@
   <footer class="options-footer row border border-700" *ngIf="uncertainty">
     <div class="col">
       <div class="row options-list">
-        <div class="col" [ngClass]="{'winner': winner == option.name, 'active': (option.active && !winner), 'eliminated': option.eliminated}" *ngFor="let option of uncertainty.options">
+        <div class="col" [ngClass]="{'winner': uncertainty?.winner?.name == option.name, 'active': isActive(option.name), 'eliminated': option.eliminated}" *ngFor="let option of uncertainty.options">
 
           <div class="svg-container">
             <svg class="bi bi-caret-down-fill active" width="48px" height="48px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">

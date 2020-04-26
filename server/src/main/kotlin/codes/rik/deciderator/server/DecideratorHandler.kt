@@ -19,6 +19,7 @@ import codes.rik.deciderator.types.Messages.NextRoundRequest
 import codes.rik.deciderator.types.Messages.UncertaintyUsersMessage
 import codes.rik.deciderator.types.Messages.UpdateCoinStateRequest
 import codes.rik.deciderator.types.Messages.UpdateCoinStyleRequest
+import codes.rik.deciderator.types.OptionName
 import codes.rik.deciderator.types.SessionId
 import codes.rik.deciderator.types.UncertaintyId
 import codes.rik.deciderator.types.Username
@@ -76,7 +77,7 @@ object DecideratorHandler : TextWebSocketHandler() {
   private fun createUncertainty(session: WebSocketSession, msg: CreateUncertaintyRequest) {
     val id = UncertaintyManager.create(
       name = msg.name,
-      options = msg.options
+      options = msg.options.map(::OptionName).toSet()
     )
     session.sendMessage(UncertaintyCreatedMessage(id))
   }
@@ -115,7 +116,6 @@ object DecideratorHandler : TextWebSocketHandler() {
     val uncertainty = UncertaintyManager.get(msg.uncertaintyId)
     session.sendMessage(UncertaintyDetailsMessage(uncertainty))
     session.sendMessage(CoinStateMessage(msg.uncertaintyId, CoinManager.get(msg.uncertaintyId)))
-//    announceUncertaintyUsers(msg.uncertaintyId) // also announce users
   }
 
   private fun nextRound(session: WebSocketSession, msg: NextRoundRequest) {

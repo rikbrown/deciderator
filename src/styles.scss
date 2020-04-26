@@ -54,3 +54,15 @@ html, body{
 ::placeholder {
   color: $gray-400 !important;
 }
+
+@mixin roundBackgrounds {
+  background-size: cover;
+
+  &[data-round-name*="Civ"], &[data-round-name*="civ"] {
+    background-image: url("/assets/img/bgs/civ6.jpg");
+  }
+
+  &[data-round-name*="Stellaris"], &[data-round-name*="stellaris"] {
+    background-image: url("/assets/img/bgs/stellaris.jpg");
+  }
+}
