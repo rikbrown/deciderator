@@ -34,13 +34,15 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestro
   private scene = new THREE.Scene();
   private camera = this.initCamera();
   private object: THREE.Mesh = null;
-  private animationMethod = null;
   private defaultCamera = null;
   private headTexture: THREE.Texture = null;
   private edgeTexture: THREE.Texture = null;
   private tailTexture: THREE.Texture = null;
   private rotation: CoinRotation = null;
   private interval = null;
+
+  private clock = new THREE.Clock();
+  private delta = 0;
 
   constructor(
     private coinService: CoinService) { }
@@ -60,7 +62,7 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestro
     this.updateCoinState();
 
     this.render();
-    this.interval = setInterval( () => { this.render(); }, 1000 / CoinComponent.FRAME_RATE );
+    // this.interval = setInterval( () => { this.render(); }, 1000 / CoinComponent.FRAME_RATE );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -169,16 +171,15 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestro
   // }
 
   private render() {
-    this.resizeCanvasToDisplaySize();
+    requestAnimationFrame(() => this.render());
 
-    if (this.animationMethod != null) {
-      this.animationMethod();
+    this.delta += this.clock.getDelta();
+    if (this.delta > 1 / CoinComponent.FRAME_RATE) {
+      this.resizeCanvasToDisplaySize();
+      this.rotation.handleRotation();
+      this.renderer.render(this.scene, this.camera);
+      this.delta = this.delta % (1 / CoinComponent.FRAME_RATE);
     }
-
-
-    this.rotation.handleRotation();
-
-    this.renderer.render(this.scene, this.camera);
   }
 
 
