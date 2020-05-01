@@ -1,5 +1,6 @@
-package codes.rik.deciderator.server
+package codes.rik.deciderator.cmd
 
+import codes.rik.deciderator.server.DecideratorHandler
 import dagger.Component
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -19,7 +20,8 @@ open class DecideratorApplication
 @Configuration
 @EnableWebSocket
 open class WSConfig : WebSocketConfigurer {
-  private val component: DecideratorComponent = DaggerDecideratorComponent.create()
+  private val component: DecideratorComponent =
+    DaggerDecideratorComponent.create()
   override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {
     registry.addHandler(component.handler, "/handler")
       .setAllowedOrigins("*")
