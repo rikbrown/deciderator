@@ -9,7 +9,8 @@ object Messages {
   interface DecideratorRequest
   data class CreateUncertaintyRequest(
     val name: String,
-    val options: Set<String>
+    val options: Set<String>,
+    val bestOf: Int
   ) : DecideratorRequest
 
   data class JoinUncertaintyRequest(val uncertaintyId: UncertaintyId) : DecideratorRequest

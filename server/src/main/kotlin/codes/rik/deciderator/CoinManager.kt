@@ -4,6 +4,7 @@ import codes.rik.deciderator.types.CoinFace
 import codes.rik.deciderator.types.CoinFace.HEADS
 import codes.rik.deciderator.types.CoinFace.TAILS
 import codes.rik.deciderator.types.UncertaintyId
+import dagger.Component
 import io.reactivex.rxjava3.subjects.PublishSubject
 import io.reactivex.rxjava3.subjects.Subject
 import kotlinx.coroutines.GlobalScope
@@ -13,9 +14,12 @@ import org.springframework.web.socket.WebSocketSession
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.Flow
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.random.Random
 
-object CoinManager {
+@Singleton
+class CoinManager @Inject constructor() {
   private val uncertaintyCoin: MutableMap<UncertaintyId, CoinState> = HashMap()
   private val uncertaintyLastFlip: MutableMap<UncertaintyId, Instant> = HashMap()
 
@@ -43,7 +47,7 @@ object CoinManager {
         onUpdate(it)
       },
       onComplete = {
-        uncertaintyLastFlip[uncertaintyId] = Instant.now();
+        uncertaintyLastFlip[uncertaintyId] = Instant.now()
         onComplete(it, waitTime)
       }).flip()
   }
@@ -78,10 +82,10 @@ private class Flipper(initialState: CoinState, val onUpdate: (CoinState) -> Unit
       )
     }
 
-    val rotateMax = Random.nextDouble(2.0, 5.0)
+    val rotateMax = Random.nextDouble(2.0, 6.0)
     val rotateMin = Random.nextDouble(1.15, 2.0)
-    val maxSpeedDelay = Random.nextInt(1000, 3000)
-    val minSpeedDelay = Random.nextInt(1000, 3000)
+    val maxSpeedDelay = Random.nextInt(500, 4000)
+    val minSpeedDelay = Random.nextInt(500, 4000)
 
     while (coinState.rotationSpeed < rotateMax) {
       delayThenChangeSpeed(Random.nextDouble(1.03, 1.07))

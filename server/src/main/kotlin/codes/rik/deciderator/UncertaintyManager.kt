@@ -1,5 +1,6 @@
 package codes.rik.deciderator
 
+import codes.rik.deciderator.types.CoinFace
 import codes.rik.deciderator.types.CoinFace.HEADS
 import codes.rik.deciderator.types.CoinFace.TAILS
 import codes.rik.deciderator.types.CoinStyle
@@ -18,11 +19,15 @@ import codes.rik.deciderator.types.count
 import codes.rik.deciderator.types.currentRules
 import codes.rik.deciderator.types.remainingOptions
 import codes.rik.deciderator.types.replace
+import dagger.Component
 import java.lang.IllegalArgumentException
 import java.time.Duration
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.random.Random
 
-object UncertaintyManager {
+@Singleton
+class UncertaintyManager @Inject constructor() {
   private val uncertainties = PLACEHOLDER_UNCERTAINTIES.associateBy { it.id }.toMutableMap()
 
   /**
@@ -106,7 +111,12 @@ object UncertaintyManager {
             TAILS -> uncertainty.options.replace(roundData.option) { it.copy(eliminated = true) }
           }
         }
-        is HeadToHeadRound -> uncertainty.options
+        is HeadToHeadRound -> {
+          when (roundWinningFace) {
+            HEADS -> uncertainty.options.replace(roundData.tailsOption) { it.copy(eliminated = true) }
+            TAILS -> uncertainty.options.replace(roundData.headsOption) { it.copy(eliminated = true) }
+          }
+        }
       }
     } else {
       uncertainty.options
@@ -123,7 +133,12 @@ object UncertaintyManager {
     uncertainties[uncertaintyId] = uncertainty.copy(
       currentRound = uncertainty.currentRound.copy(results = results, winningFace = roundWinningFace),
       options = options,
-      winner = winner?.let { Winner(it.name) }
+      winner = winner?.let {
+        Winner(it.name,
+          coinStyle = uncertainty.currentRound.coinStyle,
+          face = uncertainty.currentRound.results.last().result
+        )
+      }
     )
   }
 
@@ -265,7 +280,7 @@ private val PLACEHOLDER_UNCERTAINTIES = listOf(
       UncertaintyOption(OptionName("HoI4"), coinStyle = CoinStyle("germany"), eliminated = true),
       UncertaintyOption(OptionName("Stellaris"), coinStyle = CoinStyle("usa_trump"), eliminated = true)
     ),
-    winner = Winner(OptionName("Civ VI"))
+    winner = Winner(OptionName("Civ VI"), HEADS, CoinStyle("eu_germany"))
   ),
   Uncertainty(
     id = UncertaintyId("bestof1"),
@@ -279,6 +294,25 @@ private val PLACEHOLDER_UNCERTAINTIES = listOf(
       UncertaintyOption(OptionName("EU4"), coinStyle = CoinStyle("first_world_war")),
       UncertaintyOption(OptionName("Civ VI"), coinStyle = CoinStyle("eu_germany")),
       UncertaintyOption(OptionName("HoI4"), coinStyle = CoinStyle("germany")),
+    ),
+  ),
+  Uncertainty(
+    id = UncertaintyId("h2h"),
+    name = "[TEST] Head to Head",
+    rules = UncertaintyRules(bestOf = 3, finalTwoHeadToHead = true),
+    currentRound = Round(
+      coinStyle = CoinStyle("eu_germany"),
+      data = HeadToHeadRound(
+        headsOption = OptionName("Civ VI"),
+        tailsOption = OptionName("Stellaris"),
+      ),
+      results = listOf()
+    ),
+    options = listOf(
+      UncertaintyOption(OptionName("EU4"), coinStyle = CoinStyle("first_world_war"), eliminated = true),
+      UncertaintyOption(OptionName("Civ VI"), coinStyle = CoinStyle("eu_germany")),
+      UncertaintyOption(OptionName("HoI4"), coinStyle = CoinStyle("germany"), eliminated = true),
+      UncertaintyOption(OptionName("Stellaris"), coinStyle = CoinStyle("usa_trump"))
     ),
   ),
 )

@@ -47,6 +47,8 @@ data class UncertaintyOption(
 
 data class Winner(
   val name: OptionName,
+  val face: CoinFace,
+  val coinStyle: CoinStyle,
   // TODO: add statistics
 )
 
