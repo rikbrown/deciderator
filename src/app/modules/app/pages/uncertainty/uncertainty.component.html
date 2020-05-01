@@ -5,7 +5,10 @@
   [uncertaintyId]="uncertainty.id">
 </app-round-complete-modal>
 <app-set-username-modal *ngIf="!uncertainty?.winner"></app-set-username-modal>
-<app-winner-modal *ngIf="uncertainty?.winner" [name]="uncertainty.winner.name"></app-winner-modal>
+<app-winner-modal *ngIf="uncertainty?.winner"
+                  [winner]="uncertainty.winner">
+
+</app-winner-modal>
 
 <div class="d-flex h-100 flex-column">
   <nav class="navbar navbar-expand-md navbar-dark bg-dark">

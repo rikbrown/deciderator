@@ -101,6 +101,8 @@ interface UncertaintyRules {
 }
 
 interface Winner {
+  coinStyle: string;
+  face: CoinFace;
   name: string;
 }
 

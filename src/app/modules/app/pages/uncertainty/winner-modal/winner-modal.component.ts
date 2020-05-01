@@ -7,7 +7,7 @@ import {NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
   styleUrls: ['./winner-modal.component.scss']
 })
 export class WinnerModalComponent implements AfterViewInit {
-  @Input() name: string;
+  @Input() winner: Winner;
   @ViewChild('content') private contentTmpl: TemplateRef<any>;
   private modalRef: NgbModalRef;
 
