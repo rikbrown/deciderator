@@ -57,6 +57,14 @@ html, body{
 
 @mixin roundBackgrounds {
   background-size: cover;
+  background-position: center;
+
+  &.preload {
+    background-size: 0;
+    background-image:
+      url("/assets/img/bgs/civ6.jpg"),
+      url("/assets/img/bgs/stellaris.jpg");
+  }
 
   &[data-round-name*="Civ"], &[data-round-name*="civ"] {
     background-image: url("/assets/img/bgs/civ6.jpg");

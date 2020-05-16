@@ -110,6 +110,10 @@ export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit,
     return !!this.activeOption?.find(it => it?.name == optionName);
   }
 
+  isHeadToHead(): boolean {
+    return isHeadToHead(this.uncertainty?.currentRound.data)
+  }
+
   ngOnInit(): void {
   }
 

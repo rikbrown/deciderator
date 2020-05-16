@@ -1,0 +1,6 @@
+@import "../../../styles";
+
+.preload {
+  @include roundBackgrounds;
+  visibility: hidden;
+}

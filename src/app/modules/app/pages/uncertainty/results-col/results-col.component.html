@@ -1,11 +1,11 @@
-<div class="card" [attr.data-round-name]="faceOption?.name">
+<div class="card coin-col-card" [attr.data-round-name]="faceOption?.name" [ngClass]="{'h2h': faceOption}">
   <div class="card-body">
     <h5 class="card-title">
       {{face}} <mark *ngIf="faceOption?.name">{{faceOption.name}}</mark>
     </h5>
     <div class="card-text">
 
-      <span *ngIf="!results.length">
+      <span class="badge badge-light" *ngIf="!results.length">
         No flips yet
       </span>
 
