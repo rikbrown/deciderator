@@ -1,6 +1,5 @@
 package codes.rik.deciderator
 
-import codes.rik.deciderator.types.CoinFace
 import codes.rik.deciderator.types.CoinFace.HEADS
 import codes.rik.deciderator.types.CoinFace.TAILS
 import codes.rik.deciderator.types.CoinStyle
@@ -19,16 +18,19 @@ import codes.rik.deciderator.types.count
 import codes.rik.deciderator.types.currentRules
 import codes.rik.deciderator.types.remainingOptions
 import codes.rik.deciderator.types.replace
-import dagger.Component
-import java.lang.IllegalArgumentException
+import io.reactivex.rxjava3.subjects.BehaviorSubject
 import java.time.Duration
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.random.Random
 
 @Singleton
 class UncertaintyManager @Inject constructor() {
-  private val uncertainties = PLACEHOLDER_UNCERTAINTIES.associateBy { it.id }.toMutableMap()
+  private val uncertainties = Uncertainties(ConcurrentHashMap(PLACEHOLDER_UNCERTAINTIES.associateBy { it.id }))
+
+  fun get(uncertaintyId: UncertaintyId) = uncertainties.getSubject(uncertaintyId)
 
   /**
    * Create a new uncertainty
@@ -38,7 +40,7 @@ class UncertaintyManager @Inject constructor() {
     if (options.size < 2) throw IllegalArgumentException(">=2 options required")
 
     val uncertainty = Uncertainty(
-      id = createId(),
+      id = uncertainties.createId(),
       name = name,
       rules = UncertaintyRules(
         bestOf = 5,
@@ -58,22 +60,16 @@ class UncertaintyManager @Inject constructor() {
         }
       )
     )
-    uncertainties[uncertainty.id] = uncertainty
+    uncertainties.insert(uncertainty)
     return uncertainty.id
   }
-
-  /**
-   * Retrieve an existing uncertainty
-   */
-  fun get(id: UncertaintyId) = uncertainties[id] ?: throw UncertaintyNotFoundException(id)
 
   /**
    * Update the coin style for an uncertainty
    */
   fun updateCoinStyle(uncertaintyId: UncertaintyId, style: CoinStyle) {
-    val uncertainty = get(uncertaintyId)
-
-    uncertainties[uncertaintyId] = uncertainty.copy(
+    val uncertainty = uncertainties[uncertaintyId]
+    uncertainty.copy(
       // always update in current round
       currentRound = uncertainty.currentRound.copy(coinStyle = style),
 
@@ -82,7 +78,7 @@ class UncertaintyManager @Inject constructor() {
         is MeaningfulVoteRound -> uncertainty.options.replace(roundData.option) { it.copy(coinStyle = style) }
         is HeadToHeadRound -> uncertainty.options
       }
-    )
+    ).also { uncertainties.replace(uncertainty, it) }
   }
 
   /**
@@ -90,7 +86,7 @@ class UncertaintyManager @Inject constructor() {
    * or uncertainty completion.
    */
   fun addResult(uncertaintyId: UncertaintyId, result: FlipResult) {
-    val uncertainty = get(uncertaintyId)
+    val uncertainty = uncertainties[uncertaintyId]
 
     // Add the new result
     val results = uncertainty.currentRound.results + result
@@ -130,7 +126,7 @@ class UncertaintyManager @Inject constructor() {
         ?.let { name -> options.find { it.name == name } }
     }
 
-    uncertainties[uncertaintyId] = uncertainty.copy(
+    uncertainties.replace(uncertainty, uncertainty.copy(
       currentRound = uncertainty.currentRound.copy(results = results, winningFace = roundWinningFace),
       options = options,
       winner = winner?.let {
@@ -139,11 +135,11 @@ class UncertaintyManager @Inject constructor() {
           face = results.last().result
         )
       }
-    )
+    ))
   }
 
   fun nextRound(uncertaintyId: UncertaintyId) {
-    val uncertainty = get(uncertaintyId)
+    val uncertainty = uncertainties[uncertaintyId]
     val roundData = uncertainty.currentRound.data
     if (roundData !is MeaningfulVoteRound) throw RuntimeException("Next round not possible for ${roundData::class.simpleName}")
 
@@ -204,10 +200,32 @@ class UncertaintyManager @Inject constructor() {
         }
       }
     }
-    uncertainties[uncertaintyId] = makeUpdatedUncertainty()
+
+    uncertainties.replace(uncertainty, makeUpdatedUncertainty())
+  }
+}
+
+data class UncertaintyNotFoundException(val id: UncertaintyId) : RuntimeException("Uncertainty not found: $id")
+
+private data class Uncertainties(private val uncertainties: ConcurrentMap<UncertaintyId, Uncertainty>) {
+  private val uncertaintySubject: ConcurrentMap<UncertaintyId, BehaviorSubject<Uncertainty>> = ConcurrentHashMap()
+
+  operator fun get(id: UncertaintyId) = uncertainties[id] ?: throw UncertaintyNotFoundException(id)
+  fun getSubject(id: UncertaintyId): BehaviorSubject<Uncertainty> = uncertaintySubject.computeIfAbsent(id) { BehaviorSubject.createDefault(get(id)) }
+
+  fun insert(uncertainty: Uncertainty) {
+    uncertainties.putIfAbsent(uncertainty.id, uncertainty)
   }
 
-  private fun createId(): UncertaintyId {
+  fun replace(old: Uncertainty, new: Uncertainty) {
+    if (old.id != new.id) throw IllegalArgumentException("Cannot replace uncertainty ${old.id} with ${new.id}")
+
+    if (uncertainties.replace(old.id, old, new)) {
+      getSubject(old.id).onNext(new)
+    }
+  }
+
+  fun createId(): UncertaintyId {
     do {
       val id = UncertaintyId.create()
       if (!uncertainties.containsKey(id)) {
@@ -316,5 +334,3 @@ private val PLACEHOLDER_UNCERTAINTIES = listOf(
     ),
   ),
 )
-
-data class UncertaintyNotFoundException(val id: UncertaintyId) : RuntimeException("Uncertainty not found: $id")

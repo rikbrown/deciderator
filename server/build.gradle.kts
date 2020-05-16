@@ -32,6 +32,10 @@ dependencies {
   implementation("com.github.ntrrgc", "ts-generator", "1.1.1")
   implementation("io.reactivex.rxjava3", "rxkotlin", "3.0.0")
   implementation("com.google.dagger", "dagger", "2.27")
+  implementation("io.github.microutils", "kotlin-logging", "1.7.9")
+  implementation("org.slf4j", "slf4j-api", "1.7.30")
+//  implementation("org.slf4j", "slf4j-simple", "1.7.30")
+
 
   testImplementation("junit", "junit", "4.12")
 }
@@ -42,6 +46,7 @@ configure<JavaPluginConvention> {
 tasks {
     compileKotlin {
         kotlinOptions.jvmTarget = "13"
+        kotlinOptions.freeCompilerArgs = listOf("-Xopt-in=kotlin.contracts.ExperimentalContracts")
     }
     compileTestKotlin {
         kotlinOptions.jvmTarget = "13"

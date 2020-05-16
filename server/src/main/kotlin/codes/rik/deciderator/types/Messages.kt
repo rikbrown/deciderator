@@ -1,6 +1,6 @@
 package codes.rik.deciderator.types
 
-import codes.rik.deciderator.FlipInfo.CoinState
+import codes.rik.deciderator.CoinState
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 
 object Messages {

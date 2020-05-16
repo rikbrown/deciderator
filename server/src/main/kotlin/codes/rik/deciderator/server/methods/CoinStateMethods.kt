@@ -1,8 +1,6 @@
 package codes.rik.deciderator.server.methods
 
-import codes.rik.deciderator.CoinManager
-import codes.rik.deciderator.FlipInfo.CoinState
-import codes.rik.deciderator.FlipInfo.TargetFace
+import codes.rik.deciderator.CoinStateManager
 import codes.rik.deciderator.UncertaintyManager
 import codes.rik.deciderator.server.SessionManager
 import codes.rik.deciderator.server.sendMessage
@@ -26,67 +24,44 @@ import javax.inject.Singleton
 class CoinStateMethods @Inject constructor(
   private val sessionManager: SessionManager,
   private val uncertaintyManager: UncertaintyManager,
-  private val coinManager: CoinManager,
+  private val coinStateManager: CoinStateManager,
 ) {
 
-  fun updateCoinStyle(msg: UpdateCoinStyleRequest, session: WebSocketSession) {
+
+  fun updateCoinStyle(msg: UpdateCoinStyleRequest) {
     uncertaintyManager.updateCoinStyle(msg.uncertaintyId, CoinStyle(msg.coinStyle))
-
-    val detailsMsg = UncertaintyDetailsMessage(uncertaintyManager.get(msg.uncertaintyId))
-    sessionManager.getUncertaintySessions(msg.uncertaintyId)
-      .filterNot { it.sessionId == session.sessionId } // don't notify the caller
-      .forEach { it.sendMessage(detailsMsg) }
   }
 
-  fun updateCoinState(msg: UpdateCoinStateRequest, session: WebSocketSession) {
-    coinManager.update(msg.uncertaintyId, msg.coinState)
-
-    val coinStateMsg = CoinStateMessage(msg.uncertaintyId, msg.coinState)
-    sessionManager.getUncertaintySessions(msg.uncertaintyId)
-      .filterNot { it.sessionId == session.sessionId } // don't notify the caller
-      .forEach { it.sendMessage(coinStateMsg) }
+  fun updateCoinState(msg: UpdateCoinStateRequest) {
+    coinStateManager.update(msg.uncertaintyId, msg.coinState)
   }
 
+  /**
+   * Flips the coin.
+   * Only one caller can flip the coin at a time, and that caller is responsible for updating
+   * sessions based on the coin flip.
+   */
   fun flipCoin(msg: Messages.FlipCoinRequest, session: WebSocketSession) {
-    val uncertainty = uncertaintyManager.get(msg.uncertaintyId)
+    val uncertainty = uncertaintyManager.get(msg.uncertaintyId).value
 
     // Start flipping
-    val startTime = Instant.now()
+    // If it's already flipping, this returns completed silently.
+    coinStateManager.flip(msg.uncertaintyId)
+      .subscribe { (coinFace, startTime, waitTime) ->
+        // When flipping is complete, convert it into a result, add it, and send the latest details
+        val result = FlipResult(
+          result = coinFace,
+          coinStyle = uncertainty.currentRound.coinStyle,
+          flippedBy = session.username,
+          waitTime = waitTime,
+          flipTime = Duration.between(startTime, Instant.now())
+        )
 
-    val (flowable, waitTime) = coinManager.flip(msg.uncertaintyId)
-    flowable.publish()
-      .apply {
-        ofType<CoinState>()
-          .subscribe { coinState ->
-            // Callback invoked every time flip updates - send the new rotation state
-            sessionManager.getUncertaintySessions(msg.uncertaintyId)
-              .forEach { it.sendMessage(CoinStateMessage(msg.uncertaintyId, coinState)) }
-          }
+        uncertaintyManager.addResult(
+          msg.uncertaintyId,
+          result
+        ) // This may trigger elimination/round end
       }
-      .apply {
-        ofType<TargetFace>()
-          .map { it.targetFace }
-          .firstElement()
-          .subscribe { coinFace ->
-            // When flipping is complete, convert it into a result, add it, and send the latest details
-            val result = FlipResult(
-              result = coinFace,
-              coinStyle = uncertainty.currentRound.coinStyle,
-              flippedBy = session.username,
-              waitTime = waitTime,
-              flipTime = Duration.between(startTime, Instant.now())
-            )
-
-            uncertaintyManager.addResult(
-              msg.uncertaintyId,
-              result
-            ) // This may trigger elimination/round end
-
-            val detailsMsg = UncertaintyDetailsMessage(uncertaintyManager.get(msg.uncertaintyId))
-            sessionManager.getUncertaintySessions(msg.uncertaintyId)
-              .forEach { it.sendMessage(detailsMsg) }
-          }
-      }
-      .connect()
+    // FIXME: dispose?
   }
 }
