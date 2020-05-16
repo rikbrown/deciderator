@@ -1,6 +1,8 @@
 package codes.rik.deciderator.server.methods
 
 import codes.rik.deciderator.CoinManager
+import codes.rik.deciderator.FlipInfo.CoinState
+import codes.rik.deciderator.FlipInfo.TargetFace
 import codes.rik.deciderator.UncertaintyManager
 import codes.rik.deciderator.server.SessionManager
 import codes.rik.deciderator.server.sendMessage
@@ -13,6 +15,7 @@ import codes.rik.deciderator.types.Messages.CoinStateMessage
 import codes.rik.deciderator.types.Messages.UncertaintyDetailsMessage
 import codes.rik.deciderator.types.Messages.UpdateCoinStateRequest
 import codes.rik.deciderator.types.Messages.UpdateCoinStyleRequest
+import io.reactivex.rxjava3.kotlin.ofType
 import org.springframework.web.socket.WebSocketSession
 import java.time.Duration
 import java.time.Instant
@@ -49,30 +52,41 @@ class CoinStateMethods @Inject constructor(
 
     // Start flipping
     val startTime = Instant.now()
-    coinManager.flip(msg.uncertaintyId,
-      onUpdate = { coinState ->
-        // Callback invoked every time flip updates - send the new rotation state
-        sessionManager.getUncertaintySessions(msg.uncertaintyId)
-          .forEach { it.sendMessage(CoinStateMessage(msg.uncertaintyId, coinState)) }
-      },
-      onComplete = { coinFace, waitTime ->
-        // When flipping is complete, convert it into a result, add it, and send the latest details
-        val result = FlipResult(
-          result = coinFace,
-          coinStyle = uncertainty.currentRound.coinStyle,
-          flippedBy = session.username,
-          waitTime = waitTime,
-          flipTime = Duration.between(startTime, Instant.now())
-        )
 
-        uncertaintyManager.addResult(
-          msg.uncertaintyId,
-          result
-        ) // This may trigger elimination/round end
+    val (flowable, waitTime) = coinManager.flip(msg.uncertaintyId)
+    flowable.publish()
+      .apply {
+        ofType<CoinState>()
+          .subscribe { coinState ->
+            // Callback invoked every time flip updates - send the new rotation state
+            sessionManager.getUncertaintySessions(msg.uncertaintyId)
+              .forEach { it.sendMessage(CoinStateMessage(msg.uncertaintyId, coinState)) }
+          }
+      }
+      .apply {
+        ofType<TargetFace>()
+          .map { it.targetFace }
+          .firstElement()
+          .subscribe { coinFace ->
+            // When flipping is complete, convert it into a result, add it, and send the latest details
+            val result = FlipResult(
+              result = coinFace,
+              coinStyle = uncertainty.currentRound.coinStyle,
+              flippedBy = session.username,
+              waitTime = waitTime,
+              flipTime = Duration.between(startTime, Instant.now())
+            )
 
-        val detailsMsg = UncertaintyDetailsMessage(uncertaintyManager.get(msg.uncertaintyId))
-        sessionManager.getUncertaintySessions(msg.uncertaintyId)
-          .forEach { it.sendMessage(detailsMsg) }
-      })
+            uncertaintyManager.addResult(
+              msg.uncertaintyId,
+              result
+            ) // This may trigger elimination/round end
+
+            val detailsMsg = UncertaintyDetailsMessage(uncertaintyManager.get(msg.uncertaintyId))
+            sessionManager.getUncertaintySessions(msg.uncertaintyId)
+              .forEach { it.sendMessage(detailsMsg) }
+          }
+      }
+      .connect()
   }
 }

@@ -1,19 +1,25 @@
 package codes.rik.deciderator
 
+import codes.rik.deciderator.FlipInfo.CoinState
+import codes.rik.deciderator.FlipInfo.TargetFace
 import codes.rik.deciderator.types.CoinFace
 import codes.rik.deciderator.types.CoinFace.HEADS
 import codes.rik.deciderator.types.CoinFace.TAILS
 import codes.rik.deciderator.types.UncertaintyId
-import dagger.Component
-import io.reactivex.rxjava3.subjects.PublishSubject
-import io.reactivex.rxjava3.subjects.Subject
+import io.reactivex.rxjava3.core.BackpressureStrategy
+import io.reactivex.rxjava3.core.BackpressureStrategy.LATEST
+import io.reactivex.rxjava3.core.Emitter
+import io.reactivex.rxjava3.core.Flowable
+import io.reactivex.rxjava3.core.FlowableEmitter
+import io.reactivex.rxjava3.core.FlowableOnSubscribe
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.ObservableEmitter
+import io.reactivex.rxjava3.core.ObservableOnSubscribe
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.delay
-import org.springframework.web.socket.WebSocketSession
 import java.time.Duration
 import java.time.Instant
-import java.util.concurrent.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.random.Random
@@ -31,7 +37,7 @@ class CoinManager @Inject constructor() {
     uncertaintyCoin[uncertaintyId] = coinState
   }
 
-  fun flip(uncertaintyId: UncertaintyId, onUpdate: (CoinState) -> Unit, onComplete: (CoinFace, Duration) -> Unit) {
+  fun flip(uncertaintyId: UncertaintyId): Pair<Flowable<FlipInfo>, Duration> {
     val now = Instant.now()
     val waitTime = Duration.between(uncertaintyLastFlip[uncertaintyId] ?: now, now)
     val coinState = get(uncertaintyId)
@@ -41,29 +47,23 @@ class CoinManager @Inject constructor() {
       )
       .also { update(uncertaintyId, it) }
 
-    Flipper(coinState,
-      onUpdate = {
-        update(uncertaintyId, it)
-        onUpdate(it)
-      },
-      onComplete = {
-        uncertaintyLastFlip[uncertaintyId] = Instant.now()
-        onComplete(it, waitTime)
-      }).flip()
+    return Flowable.create(Flipper(coinState), LATEST)
+      .doOnNext { if (it is CoinState) { update(uncertaintyId, it) } }
+      .doOnComplete { uncertaintyLastFlip[uncertaintyId] = Instant.now() } to waitTime
   }
 }
 
-private class Flipper(initialState: CoinState, val onUpdate: (CoinState) -> Unit, val onComplete: (CoinFace) -> Unit) {
+private class Flipper(initialState: CoinState): FlowableOnSubscribe<FlipInfo> {
   var coinState = initialState
 
-  fun flip() {
+  override fun subscribe(emitter: FlowableEmitter<FlipInfo>) {
     GlobalScope.launch {
-      doFlips()
+      doFlips(emitter)
     }
   }
 
-  suspend fun doFlips() {
-    onUpdate(coinState)
+  private suspend fun doFlips(subscriber: Emitter<FlipInfo>) {
+    subscriber.onNext(coinState)
 
     val targetFace = if (Random.nextBoolean()) HEADS else TAILS
     val targetQuaternion = if (targetFace == HEADS) {
@@ -88,13 +88,13 @@ private class Flipper(initialState: CoinState, val onUpdate: (CoinState) -> Unit
     val minSpeedDelay = Random.nextInt(500, 4000)
 
     while (coinState.rotationSpeed < rotateMax) {
-      delayThenChangeSpeed(Random.nextDouble(1.03, 1.07))
+      delayThenChangeSpeed(subscriber, Random.nextDouble(1.03, 1.07))
     }
 
     delay(maxSpeedDelay.millis)
 
     while (coinState.rotationSpeed > rotateMin) {
-      delayThenChangeSpeed(Random.nextDouble(0.85, 0.95))
+      delayThenChangeSpeed(subscriber, Random.nextDouble(0.85, 0.95))
     }
     delay(minSpeedDelay.millis)
 
@@ -102,29 +102,35 @@ private class Flipper(initialState: CoinState, val onUpdate: (CoinState) -> Unit
         rotateDelta = DeltaXY(0.0, 0.0),
         quaternion = targetQuaternion
       )
-      .also(onUpdate)
-    onComplete(targetFace)
+      .also { subscriber.onNext(it) }
 
+    subscriber.onNext(TargetFace(targetFace))
+    subscriber.onComplete()
   }
 
-  private suspend fun delayThenChangeSpeed(speedModifier: Double) {
+  private suspend fun delayThenChangeSpeed(subscriber: Emitter<FlipInfo>, speedModifier: Double) {
     delay(Random.nextInt(350, 1250).millis)
     coinState = coinState.copy(
         quaternion = null,
         rotationSpeed = coinState.rotationSpeed * speedModifier
       )
-      .also(onUpdate)
+      .also { subscriber.onNext(it) }
   }
+
+
 }
 
+sealed class FlipInfo {
+  data class TargetFace(val targetFace: CoinFace) : FlipInfo()
+  data class CoinState(
+    val interactive: Boolean,
+    val rotateDelta: DeltaXY,
+    val rotationSpeed: Double,
+    val drag: Double,
+    val quaternion: Quaternion?
+  ) : FlipInfo()
+}
 
-data class CoinState(
-  val interactive: Boolean,
-  val rotateDelta: DeltaXY,
-  val rotationSpeed: Double,
-  val drag: Double,
-  val quaternion: Quaternion?
-)
 
 data class DeltaXY(val x: Double, val y: Double)
 data class Quaternion(
