@@ -136,7 +136,7 @@ class UncertaintyManager @Inject constructor() {
       winner = winner?.let {
         Winner(it.name,
           coinStyle = uncertainty.currentRound.coinStyle,
-          face = uncertainty.currentRound.results.last().result
+          face = results.last().result
         )
       }
     )
