@@ -317,20 +317,21 @@ private val PLACEHOLDER_UNCERTAINTIES = listOf(
   Uncertainty(
     id = UncertaintyId("h2h"),
     name = "[TEST] Head to Head",
-    rules = UncertaintyRules(bestOf = 3, finalTwoHeadToHead = true),
+    rules = UncertaintyRules(bestOf = 1, finalTwoHeadToHead = true),
     currentRound = Round(
-      coinStyle = CoinStyle("eu_germany"),
+      coinStyle = CoinStyle("japan"),
       data = HeadToHeadRound(
-        headsOption = OptionName("Civ VI"),
-        tailsOption = OptionName("Stellaris"),
+        headsOption = OptionName("WoW"),
+        tailsOption = OptionName("HoI4"),
       ),
       results = listOf()
     ),
     options = listOf(
-      UncertaintyOption(OptionName("EU4"), coinStyle = CoinStyle("first_world_war"), eliminated = true),
-      UncertaintyOption(OptionName("Civ VI"), coinStyle = CoinStyle("eu_germany")),
-      UncertaintyOption(OptionName("HoI4"), coinStyle = CoinStyle("germany"), eliminated = true),
-      UncertaintyOption(OptionName("Stellaris"), coinStyle = CoinStyle("usa_trump"))
+      UncertaintyOption(OptionName("WoW"), coinStyle = CoinStyle("japan")),
+      UncertaintyOption(OptionName("EU4"), coinStyle = CoinStyle("japan"), eliminated = true),
+      UncertaintyOption(OptionName("Civ VI"), coinStyle = CoinStyle("eu_germany"), eliminated = true),
+      UncertaintyOption(OptionName("HoI4"), coinStyle = CoinStyle("germany")),
+      UncertaintyOption(OptionName("Stellaris"), coinStyle = CoinStyle("usa_trump"), eliminated = true)
     ),
   ),
 )
