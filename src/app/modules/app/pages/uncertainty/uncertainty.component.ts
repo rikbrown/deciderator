@@ -69,7 +69,7 @@ export class UncertaintyComponent extends OnDestroyMixin implements OnInit, OnDe
   // encapsulation: ViewEncapsulation.None
 })
 export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit, AfterViewInit, OnChanges {
-  availableCoinStyles = ['germany', 'eu_germany', 'usa', 'usa_trump'];
+  availableCoinStyles = ['germany', 'eu_germany', 'usa', 'usa_trump', 'japan'];
   coinState: CoinState = null;
 
   @Input() uncertainty: Uncertainty = null;
