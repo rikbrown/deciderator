@@ -39,7 +39,6 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestro
   private edgeTexture: THREE.Texture = null;
   private tailTexture: THREE.Texture = null;
   private rotation: CoinRotation = null;
-  private interval = null;
 
   private clock = new THREE.Clock();
   private delta = 0;
@@ -62,7 +61,6 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestro
     this.updateCoinState();
 
     this.render();
-    // this.interval = setInterval( () => { this.render(); }, 1000 / CoinComponent.FRAME_RATE );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -81,11 +79,12 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestro
   ngOnDestroy(): void {
     console.log('Cleaning up...');
 
-    clearInterval(this.interval);
     this.disposeTextures();
     this.object?.geometry.dispose();
     this.scene.dispose();
     this.renderer.dispose();
+
+    this.object = this.scene = this.renderer = null;
   }
 
   @HostListener('mousedown', ['$event'])
@@ -159,6 +158,8 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestro
     this.headTexture?.dispose();
     this.edgeTexture?.dispose();
     this.tailTexture?.dispose();
+
+    this.headTexture = this.edgeTexture = this.tailTexture = null;
   }
 
   private updateCoinState(): void {
@@ -171,6 +172,8 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestro
   // }
 
   private render() {
+    if (!this.renderer) return
+
     requestAnimationFrame(() => this.render());
 
     this.delta += this.clock.getDelta();

@@ -7,6 +7,7 @@ import {BehaviorSubject, Observable, Subject} from 'rxjs';
 export class CoinRotation {
   private rendererContainer: ElementRef;
 
+  private firstLoad = true;
   private interactive = false;
   private isMouseDown = false;
 
@@ -60,6 +61,8 @@ export class CoinRotation {
     if (!this.interactive && this.isMouseDown) {
       this.isMouseDown = false;
     }
+
+    this.firstLoad = false;
   }
 
   onMouseDown(event): void {
