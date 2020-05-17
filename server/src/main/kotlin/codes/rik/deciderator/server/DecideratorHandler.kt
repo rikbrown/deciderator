@@ -69,14 +69,16 @@ class DecideratorHandler @Inject constructor(
   }
 
   private fun announceActiveSessions(sessions: Set<WebSocketSession>) {
-    sessions.forEach { session ->
-      session.sendMessage(
-        ActiveSessionsMessage(
-          sessionId = session.sessionId,
-          onlineSessionIds = sessionManager.sessionIds
+    sessions
+      .filter { it.isOpen }
+      .forEach { session ->
+        session.sendMessage(
+          ActiveSessionsMessage(
+            sessionId = session.sessionId,
+            onlineSessionIds = sessions.map { it.sessionId }.toSet()
+          )
         )
-      )
-    }
+      }
   }
 
 }

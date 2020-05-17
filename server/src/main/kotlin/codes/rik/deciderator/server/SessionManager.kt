@@ -17,19 +17,17 @@ class SessionManager @Inject constructor() {
   private val sessions: MutableMap<SessionId, WebSocketSession> = mutableMapOf()
   private val sessionUncertainty: ConcurrentMap<SessionId, UncertaintyId> = ConcurrentHashMap()
   private val sessionDisposables: ConcurrentMap<SessionId, CompositeDisposable> = ConcurrentHashMap()
-  val uncertaintySessionsSubject: BehaviorSubject<Map<UncertaintyId, Set<WebSocketSession>>> = BehaviorSubject.createDefault(mapOf())
   val sessionsSubject: BehaviorSubject<Set<WebSocketSession>> = BehaviorSubject.createDefault(setOf())
 
-  val sessionIds get() = sessions.keys
-
-  fun forEach(itr: (SessionId, WebSocketSession) -> Unit) = sessions.forEach(itr)
-
   fun addSession(session: WebSocketSession) {
+    logger.info { "New session registered: ${session.sessionId}" }
     sessions[session.sessionId] = session
     updateSessionsSubject()
   }
 
   fun removeSession(session: WebSocketSession) {
+    logger.info { "Removing session: ${session.sessionId}" }
+
     // Remove session and uncertainty link
     sessions.remove(session.sessionId)
     updateSessionsSubject()
@@ -58,34 +56,31 @@ class SessionManager @Inject constructor() {
     updateSessionsSubject()
   }
 
+  /**
+   * Returns the [UncertaintyId], if any, associated with this session.
+   */
   fun getSessionUncertainty(sessionId: SessionId) = sessionUncertainty[sessionId]
 
+  /**
+   * Sets the username associated with this session.
+   */
   fun setUsername(session: WebSocketSession, username: Username) {
     session.username = username
     sessionUncertainty[session.sessionId]?.let {
       updateSessionsSubject()
     }
   }
-  fun getDisposable(sessionId: SessionId): CompositeDisposable = sessionDisposables.computeIfAbsent(sessionId) { CompositeDisposable() }
+
+  /**
+   * Return a [CompositeDisposable] for [sessionId], which will be disposed when the session is removed.
+   */
+  fun getDisposable(sessionId: SessionId): CompositeDisposable
+    = sessionDisposables.computeIfAbsent(sessionId) { CompositeDisposable() }
 
   private fun updateSessionsSubject() {
     sessionsSubject.onNext(sessions.values.toSet())
   }
 
-//  private fun updateUncertaintySessionsSubject() {
-//    sessionUncertainty.entries
-//      .groupBy { (_, uncertaintyId) -> uncertaintyId }
-//      .mapValues { (_, entries) -> entries.map { it.key } }
-//      .mapValues { (_, sessionIds) -> sessionIds.map { sessions[it] }.filterNotNull().toSet() }
-//      .also { uncertaintySessionsSubject.onNext(it) }
-//  }
-
-//  fun getUncertaintySessionsSubject(uncertaintyId: UncertaintyId): BehaviorSubject<Set<WebSocketSession>> {
-//    return uncertaintySessionsSubject.computeIfAbsent(uncertaintyId) { BehaviorSubject.createDefault(getUncertaintySessions(uncertaintyId))}
-//  }
-
 }
-
-data class SessionNotFoundException(val id: SessionId) : RuntimeException("Session not found: $id")
 
 private val logger = KotlinLogging.logger {}

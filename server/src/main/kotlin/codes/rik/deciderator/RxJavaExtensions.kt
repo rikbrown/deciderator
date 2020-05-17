@@ -2,7 +2,6 @@ package codes.rik.deciderator
 
 import io.reactivex.rxjava3.core.Observable
 import java.util.Optional
-import kotlin.contracts.ExperimentalContracts
 
 /**
  * Returns an [Observable] with elements in a sliding window of 2
@@ -13,7 +12,7 @@ fun <T> Observable<T>.slidingPairs(): Observable<Pair<T?, T?>> = scan(null to nu
 /**
  * Returns an [Observable] which only emits the next element if it was distinct to the previous one
  */
-inline fun <reified T> Observable<T>.distinctWithPrevious() = slidingPairs()
+inline fun <reified T> Observable<T>.distinctWithPrevious(): Observable<T> = slidingPairs()
   .filter { (prev, next) -> prev != next }
   .nonNull()
   .map { (_, next) -> next }

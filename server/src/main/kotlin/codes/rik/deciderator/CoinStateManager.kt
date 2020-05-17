@@ -3,14 +3,7 @@ package codes.rik.deciderator
 import codes.rik.deciderator.types.CoinFace
 import codes.rik.deciderator.types.CoinFace.HEADS
 import codes.rik.deciderator.types.CoinFace.TAILS
-import codes.rik.deciderator.types.Uncertainty
 import codes.rik.deciderator.types.UncertaintyId
-import io.reactivex.rxjava3.annotations.NonNull
-import io.reactivex.rxjava3.core.BackpressureStrategy.LATEST
-import io.reactivex.rxjava3.core.Emitter
-import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.core.FlowableEmitter
-import io.reactivex.rxjava3.core.FlowableOnSubscribe
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.core.SingleEmitter
 import io.reactivex.rxjava3.core.SingleOnSubscribe
@@ -51,6 +44,11 @@ private data class CoinStates(
     update(uncertaintyId, get(uncertaintyId).copy(interactive = false))
     return true
   }
+
+  fun setInteractive(uncertaintyId: UncertaintyId) {
+    isNonInteractive.remove(uncertaintyId)
+    update(uncertaintyId, get(uncertaintyId).copy(interactive = true))
+  }
 }
 
 /**
@@ -74,12 +72,17 @@ class CoinStateManager @Inject constructor() {
     // Switch to non-interactive and don't flip if already non-interactive
     if (!coinStates.setNonInteractive(uncertaintyId)) {
       logger.info { "Already flipping for $uncertaintyId, ignoring flip request" }
-      return Single.error(RuntimeException("Already flipping")) // FIXME
+      return Single.error(AlreadyFlippingException)
     }
 
+    logger.info { "Starting flip..." }
     val now = Instant.now()
     val waitTime = Duration.between(coinStates.uncertaintyLastFlip[uncertaintyId] ?: now, now)
     return Single.create(Flipper(uncertaintyId, coinStates, waitTime))
+      .doFinally {
+        coinStates.uncertaintyLastFlip[uncertaintyId] = Instant.now()
+        coinStates.setInteractive(uncertaintyId)
+      }
   }
 }
 
@@ -98,6 +101,7 @@ private class Flipper(
 
   private suspend fun doFlips(emitter: SingleEmitter<FinalCoinStateResult>) {
     val startTime = Instant.now()
+    coinStates.update(uncertaintyId, coinState)
 
     val targetFace = if (Random.nextBoolean()) HEADS else TAILS
     val targetQuaternion = if (targetFace == HEADS) {
@@ -140,7 +144,7 @@ private class Flipper(
 
     emitter.onSuccess(FinalCoinStateResult(targetFace,
       waitTime = waitTime,
-    startTime = startTime))
+      startTime = startTime))
   }
 
   private suspend fun delayThenChangeSpeed(speedModifier: Double) {
@@ -152,6 +156,8 @@ private class Flipper(
       .also { coinStates.update(uncertaintyId, it) }
   }
 }
+
+object AlreadyFlippingException : RuntimeException("Already flipping")
 
 data class FinalCoinStateResult(
   val targetFace: CoinFace,

@@ -3,17 +3,12 @@ package codes.rik.deciderator.server.methods
 import codes.rik.deciderator.CoinStateManager
 import codes.rik.deciderator.UncertaintyManager
 import codes.rik.deciderator.server.SessionManager
-import codes.rik.deciderator.server.sendMessage
-import codes.rik.deciderator.server.sessionId
 import codes.rik.deciderator.server.username
 import codes.rik.deciderator.types.CoinStyle
 import codes.rik.deciderator.types.FlipResult
 import codes.rik.deciderator.types.Messages
-import codes.rik.deciderator.types.Messages.CoinStateMessage
-import codes.rik.deciderator.types.Messages.UncertaintyDetailsMessage
 import codes.rik.deciderator.types.Messages.UpdateCoinStateRequest
 import codes.rik.deciderator.types.Messages.UpdateCoinStyleRequest
-import io.reactivex.rxjava3.kotlin.ofType
 import org.springframework.web.socket.WebSocketSession
 import java.time.Duration
 import java.time.Instant
@@ -22,11 +17,9 @@ import javax.inject.Singleton
 
 @Singleton
 class CoinStateMethods @Inject constructor(
-  private val sessionManager: SessionManager,
   private val uncertaintyManager: UncertaintyManager,
   private val coinStateManager: CoinStateManager,
 ) {
-
 
   fun updateCoinStyle(msg: UpdateCoinStyleRequest) {
     uncertaintyManager.updateCoinStyle(msg.uncertaintyId, CoinStyle(msg.coinStyle))

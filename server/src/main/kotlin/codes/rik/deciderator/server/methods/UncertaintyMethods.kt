@@ -122,15 +122,8 @@ class UncertaintyMethods @Inject constructor(
     sessionUncertaintyDisposables.remove(Pair(session.sessionId, msg.uncertaintyId))?.dispose()
   }
 
-  // TODO: when used?
   fun getUncertainty(session: WebSocketSession, msg: Messages.GetUncertaintyRequest) {
     session.sendMessage(Messages.UncertaintyDetailsMessage(uncertaintyManager.get(msg.uncertaintyId).value))
-    session.sendMessage( // FIXME
-      Messages.CoinStateMessage(
-        msg.uncertaintyId,
-        coinStateManager.get(msg.uncertaintyId).value
-      )
-    )
   }
 
   fun nextRound(msg: Messages.NextRoundRequest) {

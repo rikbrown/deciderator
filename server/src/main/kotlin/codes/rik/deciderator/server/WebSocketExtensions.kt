@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import mu.KotlinLogging
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
 
@@ -17,7 +18,9 @@ val objectMapper = jacksonObjectMapper()
   .registerModule(JavaTimeModule());
 
 fun WebSocketSession.sendMessage(message: UncertaintyMessage) {
-  sendMessage(TextMessage(objectMapper.writeValueAsString(message)))
+  objectMapper.writeValueAsString(message)
+    .also { logger.info { "[OUTGOING] $it" } }
+    .also { sendMessage(TextMessage(objectMapper.writeValueAsString(message))) }
 }
 
 val WebSocketSession.sessionId get() = SessionId(this.id)
@@ -29,3 +32,5 @@ var WebSocketSession.username: Username
 //var WebSocketSession.username: String
 //  set(username) { attributes["username"] = username }
 //  get() = attributes["username"] as? String ?: id
+
+private val logger = KotlinLogging.logger {}
