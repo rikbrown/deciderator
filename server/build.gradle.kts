@@ -2,10 +2,16 @@ plugins {
   java
   kotlin("jvm") version "1.4-M1"
   kotlin("kapt") version "1.4-M1"
+  id("com.github.johnrengelman.shadow") version "5.1.0"
+  id("com.palantir.docker") version "0.25.0"
+  id("io.gitlab.arturbosch.detekt") version "1.1.1"
+  id("org.jlleitschuh.gradle.ktlint") version "9.0.0"
 }
 
 group = "codes.rik"
 version = "3.0"
+val dockerImageVersion = "0.1"
+val dockerImageName = "deciderator-server:$dockerImageVersion"
 
 repositories {
   mavenCentral()
@@ -51,4 +57,21 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "13"
     }
+}
+
+tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+  manifest {
+    attributes(mapOf(
+      "Main-Class" to "codes.rik.deciderator.cmd.ApplicationKt",
+      "Multi-Release" to "true" // https://stackoverflow.com/questions/53049346/is-log4j2-compatible-with-java-11
+    ))
+  }
+
+  mergeServiceFiles()
+}
+
+docker {
+  name = dockerImageName
+  setDockerfile(file("docker/Dockerfile"))
+  files(tasks["shadowJar"].outputs, "docker/run.sh")
 }
