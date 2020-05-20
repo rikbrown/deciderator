@@ -30,5 +30,5 @@ services:
       - URL=deciderator.app
       - VALIDATION=http
       - EMAIL=deciderator@rik.email
-      - SUBDOMAINS=www,api
-      - STAGING=true
+      - SUBDOMAINS=api
+      #- STAGING=true
