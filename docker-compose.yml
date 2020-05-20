@@ -1,13 +1,34 @@
-version: '3.7'
+version: '3'
 
 services:
-  server:
-    image: deciderator-server:0.1
+  deciderator-server:
+    image: 487129032168.dkr.ecr.us-west-2.amazonaws.com/deciderator-server:0.1
     ports:
       - '8080:8080'
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: deciderator
+        awslogs-region: us-west-2
+        awslogs-stream-prefix: server
 
-  app:
-    image: deciderator-app
+  deciderator-app:
+    image: 487129032168.dkr.ecr.us-west-2.amazonaws.com/deciderator-app:latest
     ports:
-      - '4201:4200'
-
+      - '80:80'
+      - '443:443'
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: deciderator
+        awslogs-region: us-west-2
+        awslogs-stream-prefix: app
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - TZ=America/Los_Angeles
+      - URL=deciderator.app
+      - VALIDATION=http
+      - EMAIL=deciderator@rik.email
+      - SUBDOMAINS=www,api
+      - STAGING=true

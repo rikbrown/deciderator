@@ -1,0 +1,10 @@
+version: 1
+task_definition:
+  services:
+    server:
+      cpu_shares: 100
+      #mem_limit: 924288000
+    app:
+      cpu_shares: 100
+      #mem_limit: 924288000
+

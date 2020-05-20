@@ -1,0 +1,35 @@
+# https://mherman.org/blog/dockerizing-an-angular-app/
+
+# base image
+FROM node:14.2 as build
+
+# setup env
+ENV PATH /app/node_modules/.bin:$PATH
+
+# switch to working directory
+WORKDIR /app
+
+# install and cache dependencies
+COPY package.json ./
+RUN npm install
+
+# add app
+COPY . ./
+
+# build
+RUN ng build --prod --output-path=dist
+
+############
+### prod ###
+############
+
+# base image
+FROM linuxserver/letsencrypt:latest
+
+# copy config
+COPY docker/nginx-siteconf.conf /config/nginx/site-confs/default
+COPY docker/security-headers.conf /config/nginx/security-headers.conf
+
+# copy artifact
+RUN rm -rf /config/www/*
+COPY --from=build /app/dist /config/www

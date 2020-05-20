@@ -9,6 +9,6 @@ EXPOSE 8080
 CMD java \
   -XX:+PrintCommandLineFlags \
   -server \
-  -Xms2G \
-  -Xmx2G \
+#   -Xms2G \
+#   -Xmx2G \
   -jar deciderator-server.jar

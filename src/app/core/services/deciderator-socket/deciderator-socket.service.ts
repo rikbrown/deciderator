@@ -2,7 +2,7 @@ import {Injectable, OnInit} from '@angular/core';
 import * as SockJS from 'sockjs-client';
 import {BehaviorSubject, Observable, ReplaySubject, Subject} from 'rxjs';
 
-const SERVER_URL = 'http://localhost:8080/handler';
+const SERVER_URL = `https://api.deciderator.app/handler`;
 
 @Injectable({
   providedIn: 'root'
