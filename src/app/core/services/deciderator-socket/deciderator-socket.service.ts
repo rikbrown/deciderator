@@ -1,10 +1,11 @@
 import {Injectable, OnInit} from '@angular/core';
 import * as SockJS from 'sockjs-client';
-import {BehaviorSubject, Observable, ReplaySubject, Subject} from 'rxjs';
+import {BehaviorSubject, ReplaySubject, Subject} from 'rxjs';
+import { isDevMode } from '@angular/core';
 
 const SERVER_URL = 'https://api.deciderator.app/handler';
 const LOCAL_SERVER_URL = 'http://localhost:8080/handler';
-const ACTUAL_SERVER_URL = window.location.host == 'localhost' ? LOCAL_SERVER_URL : SERVER_URL
+const ACTUAL_SERVER_URL = window.location.hostname == 'localhost' && isDevMode() ? LOCAL_SERVER_URL : SERVER_URL
 
 @Injectable({
   providedIn: 'root'
@@ -20,9 +21,12 @@ export class DecideratorSocketService {
   uncertaintyJoinedMessageSubject: Subject<UncertaintyJoinedMessage> = new Subject();
   coinStateMessageSubject: Subject<CoinStateMessage> = new Subject();
   private openPromise: ReplaySubject<void> = new ReplaySubject(1);
-  private socket = new SockJS(ACTUAL_SERVER_URL);
+  private socket: WebSocket
 
   constructor() {
+    console.info(`Connecting to ${ACTUAL_SERVER_URL}...`)
+
+    this.socket = new SockJS(ACTUAL_SERVER_URL);
     this.socket.onopen = () => {
       this.openPromise.next(null);
       console.info('oh lawd we open');
@@ -67,5 +71,4 @@ export class DecideratorSocketService {
       }
     }
   }
-
 }
