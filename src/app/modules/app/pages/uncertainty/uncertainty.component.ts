@@ -16,9 +16,10 @@ import {UncertaintyService, UncertaintyUser} from '../../../../core/services/unc
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {OnDestroyMixin, untilComponentDestroyed} from '@w11k/ngx-componentdestroyed';
 import {ActivatedRoute} from '@angular/router';
-import {SetUsernameModalComponent} from './set-username-modal/set-username-modal.component';
+import {SetUsernameModalComponent} from '../../set-username-modal/set-username-modal.component';
 import {UsernameService} from '../../../../core/services/username/username.service';
 import {Subscription} from 'rxjs';
+import {AVAILABLE_COIN_STYLES} from "../../../../coin/constants";
 
 @Component({
   selector: 'app-uncertainty',
@@ -69,7 +70,6 @@ export class UncertaintyComponent extends OnDestroyMixin implements OnInit, OnDe
   // encapsulation: ViewEncapsulation.None
 })
 export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit, AfterViewInit, OnChanges {
-  availableCoinStyles = ['germany', 'eu_germany', 'usa', 'usa_trump', 'japan', 'ducat'];
   coinState: CoinState = null;
 
   @Input() uncertainty: Uncertainty = null;
@@ -134,8 +134,8 @@ export class UncertaintyInnerComponent extends OnDestroyMixin implements OnInit,
       return;
     }
 
-    const nextCoinIndex = (this.availableCoinStyles.indexOf(this.uncertainty.currentRound.coinStyle) + 1) % this.availableCoinStyles.length;
-    this.uncertainty.currentRound.coinStyle = this.availableCoinStyles[nextCoinIndex];
+    const nextCoinIndex = (AVAILABLE_COIN_STYLES.indexOf(this.uncertainty.currentRound.coinStyle) + 1) % AVAILABLE_COIN_STYLES.length;
+    this.uncertainty.currentRound.coinStyle = AVAILABLE_COIN_STYLES[nextCoinIndex];
   }
 
   private onUncertaintyUpdate() {

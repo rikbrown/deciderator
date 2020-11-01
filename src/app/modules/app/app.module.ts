@@ -9,10 +9,12 @@ import {CommonModule} from '@angular/common';
 import {SharedModule} from '../shared.module';
 import {HomeModule} from './pages/home/home.module';
 import {DecideratorUncertaintyService, UncertaintyService} from '../../core/services/uncertainty/uncertainty.service';
+import { PreloaderComponent } from './preloader/preloader.component';
 
 @NgModule({
   declarations: [
     AppComponent,
+    PreloaderComponent,
   ],
   imports: [
     CommonModule,

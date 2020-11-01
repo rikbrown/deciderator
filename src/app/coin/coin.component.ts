@@ -16,6 +16,8 @@ import {CoinRotation} from './coinRotation';
 import {Observable} from 'rxjs';
 import {CoinService} from '../core/services/coin/coin.service';
 
+const AvailableCoinStyles = ['germany', 'eu_germany', 'usa', 'usa_trump', 'japan', 'ducat'];
+
 @Component({
   selector: 'app-coin',
   templateUrl: './coin.component.html',

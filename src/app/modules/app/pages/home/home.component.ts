@@ -4,6 +4,7 @@ import {CreateComponent} from './create/create.component';
 import {DecideratorSocketService} from '../../../../core/services/deciderator-socket/deciderator-socket.service';
 import {takeUntil} from 'rxjs/operators';
 import {OnDestroyMixin, untilComponentDestroyed} from '@w11k/ngx-componentdestroyed';
+import {SetUsernameModalComponent} from "../../set-username-modal/set-username-modal.component";
 
 @Component({
   selector: 'app-home',
@@ -14,6 +15,7 @@ import {OnDestroyMixin, untilComponentDestroyed} from '@w11k/ngx-componentdestro
 export class HomeComponent extends OnDestroyMixin implements OnInit, AfterViewInit {
   @ViewChild(JoinComponent) joinModal: JoinComponent;
   @ViewChild(CreateComponent) createModal: CreateComponent;
+  @ViewChild(SetUsernameModalComponent) setUsernameModal: SetUsernameModalComponent;
   sessionId: string;
   onlineSessionIds: string[];
 
