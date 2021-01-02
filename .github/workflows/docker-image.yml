@@ -36,10 +36,7 @@ jobs:
         with:
           push: true  
           context: .
-          dockerfile: Dockerfile-prod-nossl
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: rikbrown/deciderator-app
+          file: ./Dockerfile-prod-nossl
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
       - name: Image digest
