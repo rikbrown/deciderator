@@ -10,7 +10,7 @@ plugins {
 
 group = "codes.rik"
 version = "3.0"
-val dockerImageVersion = "0.1"
+val dockerImageVersion = "3.0"
 val dockerImageName = "rikbrown/deciderator-server:$dockerImageVersion"
 
 repositories {
