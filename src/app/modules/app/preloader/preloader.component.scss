@@ -1,5 +1,16 @@
 @import "../../../../round-backgrounds";
 
+.preload {
+  visibility:hidden;
+}
+
+.preload>img {
+  visibility: hidden;
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
 .preload>div {
   @include roundBackgrounds;
   background-size: 0;
@@ -8,3 +19,4 @@
   width: 0;
   height: 0;
 }
+

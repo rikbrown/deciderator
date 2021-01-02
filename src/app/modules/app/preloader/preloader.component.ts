@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import {AVAILABLE_COIN_STYLES} from "../../../coin/constants";
 
 @Component({
   selector: 'app-preloader',
@@ -7,6 +8,11 @@ import { Component, OnInit } from '@angular/core';
 })
 export class PreloaderComponent implements OnInit {
   ROUND_BACKGROUNDS = ['EU4', 'Civ', 'Stellaris', 'HoI', 'WoW', 'SoT']
+  COIN_ASSETS = AVAILABLE_COIN_STYLES.flatMap(c => [
+    'assets/img/coins/' + c + '/heads.png',
+    'assets/img/coins/' + c + '/tails.png',
+    'assets/img/coins/' + c + '/edge.png',
+  ])
 
   constructor() { }
 
