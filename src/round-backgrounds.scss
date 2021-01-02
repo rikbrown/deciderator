@@ -23,4 +23,8 @@
   &[data-round-name*="Sea Of Thieves"] {
     background-image: url("/assets/img/bgs/sot.jpg");
   }
+
+  &[data-round-name*="ESO"], &[data-round-name*="Elder Scrolls Online"] {
+    background-image: url("/assets/img/bgs/eso.jpg");
+  }
 }
