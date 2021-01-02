@@ -222,7 +222,7 @@ export class CoinComponent implements OnInit, AfterViewInit, OnChanges, OnDestro
 
   private static initObject(coinStyle: string): THREE.Mesh {
     // geometry
-    const diameter = 2.5;
+    const diameter = 2.75;
     const radialSegments = 50;
     const geometry = new THREE.CylinderGeometry(diameter, diameter, 0.3, radialSegments);
 
