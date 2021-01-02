@@ -1,6 +1,8 @@
 #renderer-container {
-  width: 100%;
-  height: 100%;
+  // Set to 95% because not leaving padding causes Chrome to infinitely expand the cell.
+  width: 95%;
+  height: 95%;
+  margin: auto;
 
   :first-child {
     width: 100%;
@@ -11,6 +13,4 @@
 .renderer-canvas {
     width: 100%;
     height: 100%;
-  }
-
-
+}
