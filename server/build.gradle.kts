@@ -4,8 +4,9 @@ plugins {
   kotlin("kapt") version "1.4.21"
   id("com.github.johnrengelman.shadow") version "5.1.0"
   id("com.palantir.docker") version "0.25.0"
-  id("io.gitlab.arturbosch.detekt") version "1.1.1"
-  id("org.jlleitschuh.gradle.ktlint") version "9.0.0"
+  // I'll clean the code up soon, I promise.
+//  id("io.gitlab.arturbosch.detekt") version "1.1.1"
+//  id("org.jlleitschuh.gradle.ktlint") version "9.0.0"
 }
 
 group = "codes.rik"
