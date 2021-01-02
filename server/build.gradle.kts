@@ -1,7 +1,7 @@
 plugins {
   java
-  kotlin("jvm") version "1.4-M1"
-  kotlin("kapt") version "1.4-M1"
+  kotlin("jvm") version "1.4.21"
+  kotlin("kapt") version "1.4.21"
   id("com.github.johnrengelman.shadow") version "5.1.0"
   id("com.palantir.docker") version "0.25.0"
   id("io.gitlab.arturbosch.detekt") version "1.1.1"
@@ -24,7 +24,7 @@ dependencies {
   // kotlin
   implementation(kotlin("stdlib-jdk8"))
   implementation(kotlin("reflect"))
-  implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.3.5")
+  implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.4.2")
 
   // kapt
   kapt("com.google.dagger", "dagger-compiler", "2.27")
