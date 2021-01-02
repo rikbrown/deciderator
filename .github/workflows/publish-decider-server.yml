@@ -6,6 +6,12 @@ name: Build/Publish deciderator-server
 on:
   push:
     branches: [ "3.0" ]
+    paths:
+      - 'server/**'
+
+defaults:
+  run:
+    working-directory: ./server
 
 jobs:
   build:
@@ -16,8 +22,6 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 13
-    - name: Change working directory
-      run: cd server
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
