@@ -6,7 +6,7 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./preloader.component.scss']
 })
 export class PreloaderComponent implements OnInit {
-  ROUND_BACKGROUNDS = ['EU4', 'Civ', 'Stellaris', 'HoI', 'WoW']
+  ROUND_BACKGROUNDS = ['EU4', 'Civ', 'Stellaris', 'HoI', 'WoW', 'SoT']
 
   constructor() { }
 

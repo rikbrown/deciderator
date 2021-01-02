@@ -18,4 +18,9 @@
   &[data-round-name*="WoW"], &[data-round-name*="wow"], &[data-round-name*="Warcraft"], &[data-round-name*="warcraft"] {
     background-image: url("/assets/img/bgs/wow.jpg");
   }
+
+  &[data-round-name*="SoT"], &[data-round-name*="sot"], &[data-round-name*="Sea of Thieves"], &[data-round-name*="sea of thieves"],
+  &[data-round-name*="Sea Of Thieves"] {
+    background-image: url("/assets/img/bgs/sot.jpg");
+  }
 }
