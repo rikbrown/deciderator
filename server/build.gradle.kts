@@ -11,7 +11,7 @@ plugins {
 group = "codes.rik"
 version = "3.0"
 val dockerImageVersion = "0.1"
-val dockerImageName = "487129032168.dkr.ecr.us-west-2.amazonaws.com/deciderator-server:$dockerImageVersion"
+val dockerImageName = "rikbrown/deciderator-server:$dockerImageVersion"
 
 repositories {
   mavenCentral()

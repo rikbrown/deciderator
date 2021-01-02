@@ -1,0 +1,38 @@
+# https://mherman.org/blog/dockerizing-an-angular-app/
+
+# base image
+FROM node:14.2 as build
+
+# setup env
+ENV PATH /app/node_modules/.bin:$PATH
+
+# switch to working directory
+WORKDIR /app
+
+# install and cache dependencies
+COPY package.json ./
+RUN npm install
+
+# add app
+COPY . ./
+
+# build
+RUN ng build --prod --output-path=dist
+
+############
+### prod ###
+############
+
+# base image
+FROM nginx:1.16.0-alpine
+
+# copy artifact build from the 'build environment'
+RUN rm -rf /usr/share/nginx/html/*
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# expose port 80
+EXPOSE 80
+
+# run nginx
+CMD ["nginx", "-g", "daemon off;"]
+
