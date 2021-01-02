@@ -1,8 +1,11 @@
 name: Build/Publish deciderator-app
 on:
   push:
-    branches:
-      - "3.0"
+    branches: ["3.0"]
+    paths-ignore:
+      - 'server/**'
+      - '.github/**'
+   
 jobs:
   push_to_registry:
     name: Push Docker image to Docker Hub
