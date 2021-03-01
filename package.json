@@ -32,7 +32,7 @@
     "rxjs": "~6.5.4",
     "socket.io": "^2.3.0",
     "sockjs-client": "^1.4.0",
-    "three": "^0.115.0",
+    "three": "^0.125.0",
     "three-trackballcontrols": "0.0.8",
     "tslib": "^1.10.0",
     "typescript-logging": "^0.6.4",
