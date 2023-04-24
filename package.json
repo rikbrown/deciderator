@@ -28,7 +28,7 @@
     "bootswatch": "^4.4.1",
     "humanize-duration": "^3.22.0",
     "humanize-duration-ts": "^2.1.1",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "rxjs": "~6.5.4",
     "socket.io": "^2.3.0",
     "sockjs-client": "^1.4.0",
